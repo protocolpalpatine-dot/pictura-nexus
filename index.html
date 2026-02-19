@@ -1,161 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>🌌 PICTURA NEXUS — Voice Evolution</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="manifest" href="data:application/json,{%22name%22:%22Pictura Nexus%22,%22short_name%22:%22Nexus%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000%22,%22theme_color%22:%22%2367e8f9%22,%22icons%22:[{%22src%22:%22https://picsum.photos/192/192%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { background: radial-gradient(circle at center, #0a0a1f, #000); color: #a5f3fc; font-family: monospace; }
-  .card { transition: all 0.4s cubic-bezier(0.23,1,0.32,1); }
-  .card:hover { transform: scale(1.04) rotate(1deg); box-shadow: 0 0 60px -10px #67e8f9; }
-  .rating-bar { height: 8px; background: linear-gradient(90deg, #22d3ee, #c026d3); }
-  video, audio { width: 100%; max-height: 320px; }
-  .mic-button { transition: all 0.3s; }
-  .mic-button.listening { animation: pulse-mic 1.5s infinite; background-color: #ef4444 !important; }
-  @keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.8); } 70% { box-shadow: 0 0 0 40px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pictura Nexus • Streamlined Media Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
+    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; transition: all 0.3s; }
+    .upload-area:hover { border-color: #a5b4fc; background: rgba(99,102,241,0.05); }
+    .card { background: rgba(30,30,60,0.7); backdrop-filter: blur(8px); border: 1px solid rgba(165,180,252,0.2); }
+    .mic-btn.listening { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 25px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+  </style>
 </head>
-<body class="min-h-screen p-8">
-<div class="max-w-7xl mx-auto">
-  <div class="text-center mb-12">
-    <div class="text-7xl mb-4">🌌</div>
-    <h1 class="text-5xl font-bold tracking-widest">PICTURA NEXUS</h1>
-    <p class="text-cyan-300 mt-2">PRIMORDIA + CRYSTALLIS — Voice Evolution 🎤</p>
-    <p class="text-emerald-400 text-sm">Just speak! No glyphs or typing needed.</p>
+<body class="antialiased">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header & Auth -->
+    <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
+        Pictura Nexus
+      </h1>
+
+      <div class="flex items-center gap-4">
+        <div id="authStatus" class="text-sm text-gray-300"></div>
+        <button id="logoutBtn" class="hidden px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg text-sm font-medium transition">
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Login / Register (shown when not logged in) -->
+    <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto" style="display:none;">
+      <h2 class="text-2xl font-semibold mb-6 text-center">Sign In or Create Account</h2>
+      <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
+      <div class="flex gap-4">
+        <button id="loginBtn" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition">Login</button>
+        <button id="registerBtn" class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition">Register</button>
+      </div>
+      <p id="authMessage" class="mt-4 text-center text-sm text-red-400"></p>
+    </div>
+
+    <!-- Main Content (hidden until logged in) -->
+    <div id="mainContent" style="display:none;">
+
+      <!-- Voice & Upload Controls -->
+      <div class="flex flex-col md:flex-row gap-6 mb-10 justify-center">
+        <button id="micBtn" class="mic-btn flex items-center justify-center gap-3 px-10 py-6 bg-red-600 hover:bg-red-700 rounded-full text-xl font-medium transition shadow-lg">
+          🎤 <span>Speak Command</span>
+        </button>
+
+        <label class="upload-area flex flex-col items-center justify-center px-10 py-8 cursor-pointer">
+          <span class="text-4xl mb-3">📤</span>
+          <span class="text-lg font-medium">Upload Photo or Video</span>
+          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
+        </label>
+      </div>
+
+      <!-- Gallery -->
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+      <!-- Log -->
+      <div class="mt-12 bg-black/40 backdrop-blur-sm border border-indigo-900/50 rounded-xl p-6 max-h-64 overflow-y-auto text-sm font-mono" id="log">
+        <div class="text-indigo-300">Log started...</div>
+      </div>
+    </div>
   </div>
 
-  <!-- VOICE COMMAND BAR -->
-  <div class="bg-black/80 border border-red-500/70 rounded-3xl p-8 mb-12 text-center">
-    <button onclick="toggleVoice()" id="micBtn" class="mic-button px-16 py-10 bg-red-600 hover:bg-red-500 text-white text-5xl rounded-full flex items-center gap-6 mx-auto shadow-2xl">
-      🎤 <span id="micText" class="text-2xl font-medium">Speak your command</span>
-    </button>
-    <p id="voiceStatus" class="mt-6 text-amber-400 font-medium"></p>
-  </div>
+  <script>
+    // ────────────────────────────────────────────────
+    // State & Storage
+    // ────────────────────────────────────────────────
+    let currentUser = null;
+    let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
 
-  <!-- NAV -->
-  <div class="flex justify-center gap-8 mb-12 text-lg">
-    <a href="#gallery" class="hover:text-white">Gallery</a>
-    <a href="#weave" class="hover:text-white">Manual Weave</a>
-    <a href="#evolution" class="hover:text-white">Evolution Chamber</a>
-  </div>
+    function saveData() {
+      localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
+      localStorage.setItem('pictura_currentUser', JSON.stringify(currentUser));
+    }
 
-  <!-- GALLERY -->
-  <div id="gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"></div>
+    function loadData() {
+      currentUser = JSON.parse(localStorage.getItem('pictura_currentUser'));
+      mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
+      updateAuthUI();
+    }
 
-  <!-- MANUAL WEAVE CONSOLE -->
-  <div id="weave" class="bg-black/70 border border-cyan-500 rounded-3xl p-8 mb-12">
-    <div class="text-xl mb-4">Manual Weave Console (advanced)</div>
-    <textarea id="weaveInput" class="w-full h-40 bg-black border border-cyan-400 p-6 text-cyan-100 font-mono text-lg rounded-2xl resize-y" spellcheck="false" placeholder="e.g. 𐄷 bunny_video 9.5"></textarea>
-    <button onclick="executeWeave()" class="mt-6 px-16 py-6 bg-gradient-to-r from-cyan-400 to-violet-500 text-black text-2xl font-bold rounded-3xl w-full">𐃏 Execute Manual Weave</button>
-  </div>
+    // ────────────────────────────────────────────────
+    // Auth
+    // ────────────────────────────────────────────────
+    function updateAuthUI() {
+      const authForm = document.getElementById('authForm');
+      const mainContent = document.getElementById('mainContent');
+      const status = document.getElementById('authStatus');
+      const logoutBtn = document.getElementById('logoutBtn');
 
-  <!-- EVOLUTION CHAMBER -->
-  <div id="evolution" class="bg-black/70 border border-violet-500 rounded-3xl p-8">
-    <div class="text-xl mb-4 flex items-center gap-3"><span class="text-3xl">𐄺</span> Evolution Chamber</div>
-    <textarea id="evolveRequest" class="w-full h-32 bg-black border border-violet-400 p-6 text-violet-100 font-mono text-lg rounded-2xl resize-y" placeholder="e.g. Add comments feature or global ratings..."></textarea>
-    <button onclick="prepareEvolutionRequest()" class="mt-6 px-16 py-6 bg-gradient-to-r from-violet-400 to-fuchsia-500 text-black text-2xl font-bold rounded-3xl w-full">📋 Copy Message for Grok</button>
-    <div id="evolveStatus" class="mt-4 text-emerald-400 text-sm"></div>
-  </div>
+      if (currentUser) {
+        authForm.style.display = 'none';
+        mainContent.style.display = 'block';
+        status.textContent = `Logged in as ${currentUser.username}`;
+        logoutBtn.classList.remove('hidden');
+      } else {
+        authForm.style.display = 'block';
+        mainContent.style.display = 'none';
+        status.textContent = '';
+        logoutBtn.classList.add('hidden');
+      }
+    }
 
-  <!-- LOG -->
-  <div id="log" class="bg-black/50 border border-emerald-500 rounded-3xl p-6 mt-12 max-h-64 overflow-y-auto text-sm font-mono"></div>
-</div>
+    document.getElementById('loginBtn').onclick = () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return showAuthMsg('Please fill both fields');
 
-<script>
-// Full CRYSTALLIS + functions (same as before but verified complete)
-let crystallis = JSON.parse(localStorage.getItem('pictura_crystallis_voice')) || {
-  mediaItems: [
-    {id:"mountain_dawn", name:"Mountain Dawn", desc:"Serene mountain landscape at dramatic sunset", url:"https://picsum.photos/id/1015/800/600", type:"image", ratings:[8.3,8.1,8.7], avg:8.37},
-    {id:"kitten_glow", name:"Kitten Glow", desc:"Cute fluffy kitten in glowing meadow", url:"https://picsum.photos/id/219/800/600", type:"image", ratings:[9.1,9.4,8.9], avg:9.13},
-    {id:"bunny_video", name:"Big Buck Bunny", desc:"Epic open-source bunny forest adventure", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type:"video", ratings:[8.5,9.0,8.8], avg:8.77},
-    {id:"helix_audio", name:"SoundHelix Song 1", desc:"Classic electronic test track", url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", type:"audio", ratings:[7.9,8.2,7.5], avg:7.87}
-  ]
-};
+      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
+      if (users[username] && users[username] === password) {
+        currentUser = { username };
+        saveData();
+        showAuthMsg('Logged in!', 'text-green-400');
+      } else {
+        showAuthMsg('Invalid credentials');
+      }
+    };
 
-function saveCrystallis() { localStorage.setItem('pictura_crystallis_voice', JSON.stringify(crystallis)); }
+    document.getElementById('registerBtn').onclick = () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return showAuthMsg('Please fill both fields');
 
-function renderGallery() {
-  const g = document.getElementById('gallery');
-  g.innerHTML = '';
-  crystallis.mediaItems.forEach(item => {
-    const avg = item.ratings.length ? (item.ratings.reduce((a,b)=>a+b,0)/item.ratings.length).toFixed(1) : '—';
-    let mediaHTML = '';
-    if (item.type === 'image') mediaHTML = `<img src="${item.url}" class="w-full aspect-video object-cover">`;
-    else if (item.type === 'video') mediaHTML = `<video src="${item.url}" controls class="w-full aspect-video bg-black"></video>`;
-    else if (item.type === 'audio') mediaHTML = `<div class="aspect-video bg-zinc-900 flex items-center justify-center"><audio src="${item.url}" controls class="w-11/12"></audio></div>`;
-    const html = `
-      <div class="card bg-zinc-950 border border-cyan-500/50 rounded-3xl overflow-hidden">
-        ${mediaHTML}
-        <div class="p-6">
-          <h3 class="text-2xl font-bold">${item.name} <span class="text-xs uppercase text-violet-400">(${item.type})</span></h3>
-          <p class="text-cyan-300 text-sm mt-1 line-clamp-2">${item.desc}</p>
-          <div class="mt-4 flex items-center gap-3">
-            <div class="flex-1 bg-zinc-900 h-2.5 rounded-full overflow-hidden"><div class="rating-bar" style="width:${parseFloat(avg)/10*100}%"></div></div>
-            <span class="text-3xl font-bold text-cyan-400">${avg}</span>
-          </div>
-          <div class="mt-4 text-xs text-violet-400">Rate: say "rate ${item.id} X.X"</div>
-        </div>
-      </div>`;
-    g.innerHTML += html;
-  });
-}
+      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
+      if (users[username]) {
+        showAuthMsg('Username already taken');
+      } else {
+        users[username] = password;
+        localStorage.setItem('pictura_users', JSON.stringify(users));
+        currentUser = { username };
+        saveData();
+        showAuthMsg('Account created! You are now logged in.', 'text-green-400');
+      }
+    };
 
-function log(message) {
-  const l = document.getElementById('log');
-  l.innerHTML += `<div class="py-1">${message}</div>`;
-  l.scrollTop = l.scrollHeight;
-}
+    document.getElementById('logoutBtn').onclick = () => {
+      currentUser = null;
+      saveData();
+      showAuthMsg('Logged out');
+    };
 
-function executeWeave() {
-  const input = document.getElementById('weaveInput').value.trim();
-  log('Manual weave executed: ' + input);
-  // Add parsing logic here if needed for glyphs
-  alert('Manual weave processed: ' + input.substring(0, 50) + '...');
-}
+    function showAuthMsg(text, color = 'text-red-400') {
+      document.getElementById('authMessage').textContent = text;
+      document.getElementById('authMessage').className = `mt-4 text-center text-sm ${color}`;
+    }
 
-function prepareEvolutionRequest() {
-  const request = document.getElementById('evolveRequest').value.trim() || "No request";
-  const message = `Hey Grok,\n\nEvolve PRIMORDIA + CRYSTALLIS + Pictura Nexus with this request:\n${request}\n\nPlease return the complete new index.html file.`;
-  navigator.clipboard.writeText(message).then(() => {
-    document.getElementById('evolveStatus').innerHTML = '✅ Copied! Paste in chat.';
-    log('Evolution message copied');
-  }).catch(err => log('Copy error: ' + err));
-}
+    // ────────────────────────────────────────────────
+    // Gallery
+    // ────────────────────────────────────────────────
+    function renderGallery() {
+      const container = document.getElementById('gallery');
+      container.innerHTML = '';
 
-// Voice setup (basic working version)
-let recognition;
-let isListening = false;
+      mediaItems.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'card rounded-xl overflow-hidden shadow-lg';
 
-function toggleVoice() {
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-    log('Voice not supported');
-    return;
-  }
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-US';
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    document.getElementById('voiceStatus').textContent = 'Heard: ' + transcript;
-    log('Voice heard: ' + transcript);
-    alert('Voice command: ' + transcript); // Test alert to confirm execution
-  };
-  recognition.onerror = (event) => log('Voice error: ' + event.error);
-  recognition.onend = () => log('Voice ended');
+        if (item.type.startsWith('image')) {
+          card.innerHTML = `<img src="${item.url}" alt="${item.name}" class="w-full h-64 object-cover" />`;
+        } else if (item.type.startsWith('video')) {
+          card.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
+        }
 
-  if (isListening) {
-    recognition.stop();
-    isListening = false;
-  } else {
-    recognition.start();
-    isListening = true;
-    log('Listening...');
-  }
-}
+        const info = document.createElement('div');
+        info.className = 'p-4';
+        info.innerHTML = `
+          <h3 class="font-semibold text-lg mb-1">${item.name}</h3>
+          <p class="text-sm text-gray-400">${item.type} • ${new Date(item.timestamp).toLocaleDateString()}</p>
+        `;
 
-renderGallery();
-log('Full version restored. Test voice/manual/copy.');
-</script>
+        card.appendChild(info);
+        container.appendChild(card);
+      });
+
+      if (mediaItems.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No media yet. Upload or speak to add something!</p>';
+      }
+    }
+
+    // ────────────────────────────────────────────────
+    // File Upload
+    // ────────────────────────────────────────────────
+    document.getElementById('fileInput').onchange = (e) => {
+      if (!currentUser) return alert('Please log in to upload');
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        mediaItems.push({
+          name: file.name,
+          type: file.type,
+          url: ev.target.result,
+          timestamp: Date.now(),
+          uploadedBy: currentUser.username
+        });
+        saveData();
+        renderGallery();
+        log(`Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`);
+        e.target.value = ''; // reset input
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // ────────────────────────────────────────────────
+    // Voice Commands (basic example)
+    // ────────────────────────────────────────────────
+    const micBtn = document.getElementById('micBtn');
+    let recognition;
+
+    micBtn.onclick = () => {
+      if (!currentUser) return alert('Please log in to use voice commands');
+
+      if (!('webkitSpeechRecognition' in window)) {
+        return log('Voice recognition not supported in this browser');
+      }
+
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        document.getElementById('voiceStatus').textContent = 'Heard: ' + transcript;
+        log('Voice: ' + transcript);
+
+        if (transcript.includes('upload') || transcript.includes('add photo') || transcript.includes('add video')) {
+          document.getElementById('fileInput').click();
+        } else {
+          log('Command not recognized. Try saying "upload photo" or "add video"');
+        }
+      };
+
+      recognition.onerror = (e) => log('Voice error: ' + e.error);
+      recognition.onend = () => micBtn.classList.remove('listening');
+
+      micBtn.classList.add('listening');
+      recognition.start();
+    };
+
+    // ────────────────────────────────────────────────
+    // Log helper
+    // ────────────────────────────────────────────────
+    function log(message) {
+      const logEl = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.textContent = message;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Init
+    loadData();
+    renderGallery();
+    log('Pictura Nexus ready • Streamlined version • Upload & voice enabled');
+  </script>
 </body>
 </html>
