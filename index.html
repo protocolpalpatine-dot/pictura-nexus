@@ -64,23 +64,52 @@
 </div>
 
 <script>
-// CRYSTALLIS storage
+// CRYSTALLIS storage (localStorage for persistence)
 let crystallis = JSON.parse(localStorage.getItem('pictura_crystallis_voice')) || {
-  mediaItems: [ /* same seed items as before */ 
-    {id:"mountain_dawn", name:"Mountain Dawn", desc:"Serene mountain landscape", url:"https://picsum.photos/id/1015/800/600", type:"image", ratings:[8.3,8.1,8.7], avg:8.37},
-    {id:"kitten_glow", name:"Kitten Glow", desc:"Cute fluffy kitten", url:"https://picsum.photos/id/219/800/600", type:"image", ratings:[9.1,9.4,8.9], avg:9.13},
-    {id:"bunny_video", name:"Big Buck Bunny", desc:"Epic bunny adventure", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type:"video", ratings:[8.5,9.0,8.8], avg:8.77}
+  mediaItems: [
+    {id: "mountain_dawn", name: "Mountain Dawn", desc: "Serene mountain landscape", url: "https://picsum.photos/id/1015/800/600", type: "image", ratings: [8.3, 8.1, 8.7], avg: 8.37},
+    {id: "kitten_glow", name: "Kitten Glow", desc: "Cute fluffy kitten", url: "https://picsum.photos/id/219/800/600", type: "image", ratings: [9.1, 9.4, 8.9], avg: 9.13},
+    {id: "bunny_video", name: "Big Buck Bunny", desc: "Epic bunny adventure", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: "video", ratings: [8.5, 9.0, 8.8], avg: 8.77}
   ]
 };
 
-function saveCrystallis() { localStorage.setItem('pictura_crystallis_voice', JSON.stringify(crystallis)); }
-function renderGallery() { /* same as previous version — omitted for brevity but identical */ 
-  const g = document.getElementById('gallery'); g.innerHTML = '';
-  crystallis.mediaItems.forEach(item => { /* render cards exactly as before */ });
+function saveCrystallis() {
+  localStorage.setItem('pictura_crystallis_voice', JSON.stringify(crystallis));
+  log("Storage saved.");
 }
 
-// Manual execute (unchanged)
-function executeWeave() { /* same parsing as previous version */ }
+function renderGallery() {
+  const g = document.getElementById('gallery');
+  g.innerHTML = '';
+  crystallis.mediaItems.forEach(item => {
+    const avg = item.ratings.length ? (item.ratings.reduce((a,b)=>a+b,0)/item.ratings.length).toFixed(1) : '—';
+    let mediaHTML = '';
+    if (item.type === 'image') mediaHTML = `<img src="${item.url}" class="w-full aspect-video object-cover">`;
+    else if (item.type === 'video') mediaHTML = `<video src="${item.url}" controls class="w-full aspect-video bg-black"></video>`;
+    else if (item.type === 'audio') mediaHTML = `<div class="aspect-video bg-zinc-900 flex items-center justify-center"><audio src="${item.url}" controls class="w-11/12"></audio></div>`;
+    const html = `
+      <div class="card bg-zinc-950 border border-cyan-500/50 rounded-3xl overflow-hidden">
+        ${mediaHTML}
+        <div class="p-6">
+          <h3 class="text-2xl font-bold">$$   {item.name} <span class="text-xs uppercase text-violet-400">(   $${item.type})</span></h3>
+          <p class="text-cyan-300 text-sm mt-1 line-clamp-2">${item.desc}</p>
+          <div class="mt-4 flex items-center gap-3">
+            <div class="flex-1 bg-zinc-900 h-2.5 rounded-full overflow-hidden"><div class="rating-bar" style="width:${parseFloat(avg)/10*100}%"></div></div>
+            <span class="text-3xl font-bold text-cyan-400">${avg}</span>
+          </div>
+          <div class="mt-4 text-xs text-violet-400">Rate: say "rate ${item.id} X.X"</div>
+        </div>
+      </div>`;
+    g.innerHTML += html;
+  });
+  log("Gallery rendered with " + crystallis.mediaItems.length + " items.");
+}
+
+function log(message) {
+  const l = document.getElementById('log');
+  l.innerHTML += `<div class="py-1">${new Date().toLocaleTimeString()} - ${message}</div>`;
+  l.scrollTop = l.scrollHeight;
+}
 
 // VOICE SYSTEM
 let recognition;
@@ -89,7 +118,7 @@ let isListening = false;
 function initVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    alert("Voice not supported in this browser. Try Chrome or Edge.");
+    log("Voice not supported in this browser. Try Chrome/Edge.");
     return;
   }
   recognition = new SpeechRecognition();
@@ -99,14 +128,14 @@ function initVoice() {
 
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript.trim();
-    document.getElementById('voiceStatus').innerHTML = `🎤 Heard: <span class="text-white">"${transcript}"</span>`;
-    log(`🎤 Voice input: ${transcript}`);
+    document.getElementById('voiceStatus').innerHTML = `🎤 Heard: "${transcript}"`;
+    log(`Voice heard: "${transcript}"`);
     processVoiceCommand(transcript);
   };
 
-  recognition.onerror = () => {
+  recognition.onerror = (event) => {
     stopListening();
-    log('<span class="text-red-400">Voice error — please try again</span>');
+    log(`Voice error: ${event.error}`);
   };
 
   recognition.onend = stopListening;
@@ -134,47 +163,57 @@ function stopListening() {
 function processVoiceCommand(text) {
   const lower = text.toLowerCase();
   let executed = false;
+  log("Processing command: " + text);
 
-  // Rate command
+  // Rate command - improved matching
   if (lower.includes('rate')) {
-    const match = lower.match(/rate\s+([\w_]+)\s+(\d+\.?\d*)/);
+    const match = lower.match(/rate\s+([a-z0-9_ ]+)\s+(\d+\.?\d*)/i);
     if (match) {
-      const id = match[1];
+      let search = match[1].trim().toLowerCase().replace(/\s+/g, '_');
       const score = parseFloat(match[2]);
-      const item = crystallis.mediaItems.find(m => m.id === id || m.name.toLowerCase().includes(id));
+      const item = crystallis.mediaItems.find(m => 
+        m.id.toLowerCase().includes(search) || m.name.toLowerCase().includes(search)
+      );
       if (item) {
         item.ratings.push(score);
         item.avg = item.ratings.reduce((a,b)=>a+b,0) / item.ratings.length;
-        log(`𐄷 Voice rating: ${item.name} → ${score}`);
+        log(`Success: Rated "${item.name}" → ${score} (new avg ${item.avg.toFixed(1)})`);
         executed = true;
+      } else {
+        log(`No item found matching "${search}"`);
       }
+    } else {
+      log("Rate format not recognized. Try: rate bunny 9.5");
     }
   }
 
-  // Add media command
+  // Add media command - improved URL/desc parsing
   if (lower.includes('add') || lower.includes('new') || lower.includes('forge')) {
     let type = 'video';
     if (lower.includes('audio')) type = 'audio';
     if (lower.includes('image') || lower.includes('photo')) type = 'image';
 
     const urlMatch = text.match(/url\s+(https?:\/\/\S+)/i);
-    const descMatch = text.match(/description\s+(.+?)(?=\s+url|\( )/i) || text.match(/desc\s+(.+?)(?=\s+url| \))/i);
-    const nameMatch = text.match(/(?:called|named)\s+([\w\s]+)/i);
+    const descMatch = text.match(/(?:description|desc)\s+(.+?)(?=\s+url|$)/i);
+    const nameMatch = text.match(/(?:called|named)\s+([a-z0-9 ]+)/i);
 
     if (urlMatch) {
-      const name = (nameMatch ? nameMatch[1].trim() : 'voice_item_' + Date.now()).replace(/\s+/g,'_').toLowerCase();
+      const nameRaw = nameMatch ? nameMatch[1].trim() : 'voice_item_' + Date.now();
+      const name = nameRaw.replace(/\s+/g, '_').toLowerCase();
       const desc = descMatch ? descMatch[1].trim() : 'Voice-added media';
       const url = urlMatch[1];
 
-      crystallis.mediaItems.push({id: name, name: name.replace(/_/g,' '), desc, url, type, ratings:[], avg:0});
-      log(`𐄺 Voice added new ${type}: ${name}`);
+      crystallis.mediaItems.push({id: name, name: nameRaw, desc, url, type, ratings: [], avg: 0});
+      log(`Success: Added new ${type}: "${nameRaw}"`);
       executed = true;
+    } else {
+      log("Add command missing URL. Try: add video called test with url https://... description ...");
     }
   }
 
-  // Refresh
-  if (lower.includes('refresh') || lower.includes('show gallery') || lower.includes('gallery')) {
-    log('𐄸 Gallery refreshed by voice');
+  // Refresh/gallery
+  if (lower.includes('refresh') || lower.includes('show') || lower.includes('gallery')) {
+    log("Refreshing gallery by voice");
     executed = true;
   }
 
@@ -182,14 +221,14 @@ function processVoiceCommand(text) {
     saveCrystallis();
     renderGallery();
   } else {
-    log(`🎤 Could not understand command. Try: "add video called X with url Y description Z" or "rate bunny 9.5"`);
-    document.getElementById('weaveInput').value = '// ' + text;
+    log("Command not understood. Try: 'rate bunny 9.5' or 'add video called test with url https://... description fun'");
   }
 }
 
-// Init
+// Init everything
 renderGallery();
-log('<span class="text-cyan-300">🌌 Voice Evolution active! Click the big red microphone and speak naturally.</span>');
+log("Pictura Nexus Voice loaded. Click microphone and speak!");
 </script>
+
 </body>
 </html>
