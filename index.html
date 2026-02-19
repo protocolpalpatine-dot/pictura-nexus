@@ -1,275 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' data: https:; connect-src 'self';">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pictura Nexus • Secure Media Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; transition: all 0.3s; }
-    .upload-area:hover { border-color: #a5b4fc; background: rgba(99,102,241,0.05); }
-    .card { background: rgba(30,30,60,0.7); backdrop-filter: blur(8px); border: 1px solid rgba(165,180,252,0.2); }
+    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; padding: 2rem; }
+    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; padding: 2rem; text-align: center; cursor: pointer; }
+    .upload-area:hover { background: rgba(99,102,241,0.1); }
+    .mic-btn { background: #ef4444; color: white; padding: 1.5rem 3rem; border-radius: 9999px; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem; margin: 0 auto 2rem; cursor: pointer; }
     .mic-btn.listening { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 25px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+    #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+    .gallery-item { background: #1e1e3c; border-radius: 1rem; overflow: hidden; }
+    .gallery-item img, .gallery-item video { width: 100%; height: 200px; object-fit: cover; }
   </style>
 </head>
-<body class="antialiased">
-  <div class="max-w-6xl mx-auto px-4 py-8">
+<body>
+  <div class="max-w-5xl mx-auto">
 
-    <!-- Header & Auth -->
-    <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-      <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
+    <header class="text-center mb-10">
+      <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
         Pictura Nexus
       </h1>
-      <div class="flex items-center gap-4">
-        <div id="authStatus" class="text-sm text-gray-300"></div>
-        <button id="logoutBtn" class="hidden px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg text-sm font-medium transition">
-          Logout
-        </button>
-      </div>
+      <p id="authStatus" class="mt-2 text-gray-300"></p>
+      <button id="logoutBtn" class="hidden mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg">Logout</button>
     </header>
 
-    <!-- Login / Register -->
-    <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto">
-      <h2 class="text-2xl font-semibold mb-6 text-center">Sign In or Create Account</h2>
-      <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
-      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
-      <div class="flex gap-4">
-        <button id="loginBtn" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition">Login</button>
-        <button id="registerBtn" class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition">Register</button>
-      </div>
-      <p id="authMessage" class="mt-4 text-center text-sm text-red-400"></p>
+    <!-- Login Form -->
+    <div id="authForm" class="card max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+      <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg" />
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg" />
+      <button id="loginBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium">Login</button>
+      <p id="authMessage" class="mt-4 text-center text-red-400"></p>
     </div>
 
     <!-- Main Content -->
     <div id="mainContent" style="display:none;">
-
-      <!-- Admin Evolution Link -->
-      <div id="adminSection" class="text-center mb-8" style="display:none;">
-        <button id="evolLink" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-lg font-medium transition shadow-md">
-          Go to Evolution Chamber (Admin Only)
+      <div class="flex justify-center gap-8 mb-10">
+        <button id="micBtn" class="mic-btn">
+          🎤 Speak Command
         </button>
+        <label class="upload-area">
+          <span class="block text-lg font-medium">Upload Photo/Video (max 50MB)</span>
+          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
+        </label>
       </div>
 
-      <!-- Main Page -->
-      <div id="mainPage">
-        <div class="flex flex-col md:flex-row gap-6 mb-10 justify-center">
-          <button id="micBtn" class="mic-btn flex items-center justify-center gap-3 px-10 py-6 bg-red-600 hover:bg-red-700 rounded-full text-xl font-medium transition shadow-lg">
-            🎤 <span>Speak Command</span>
-          </button>
+      <div id="gallery"></div>
 
-          <label class="upload-area flex flex-col items-center justify-center px-10 py-8 cursor-pointer">
-            <span class="text-4xl mb-3">📤</span>
-            <span class="text-lg font-medium">Upload Photo or Video (max 50MB)</span>
-            <input id="fileInput" type="file" accept="image/jpeg,image/png,image/gif,video/mp4,video/webm" class="hidden" />
-          </label>
-        </div>
-
-        <!-- Gallery -->
-        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-      </div>
-
-      <!-- Evolution Chamber Page -->
-      <div id="evolutionPage" style="display:none;">
-        <button id="backBtn" class="mb-6 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition">
-          ← Back to Main
-        </button>
-        <div class="card p-8 rounded-2xl">
-          <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">Evolution Chamber</h2>
-
-          <!-- Fake Grok Chat Box -->
-          <div class="mb-8">
-            <h3 class="text-xl font-semibold mb-4">Chat with Grok</h3>
-            <p class="text-sm text-gray-400 mb-4">Type your idea — it copies & opens the Grok chat.</p>
-            <textarea id="chatInput" class="w-full p-4 h-32 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-4" placeholder="e.g. Add a like button to gallery items..."></textarea>
-            <button onclick="sendToGrok()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-lg font-bold text-lg transition">
-              Send to Grok → Copy & Open Chat
-            </button>
-            <p id="chatStatus" class="mt-4 text-center text-green-400"></p>
-          </div>
-
-          <!-- Self-Update Paste Box -->
-          <div class="mt-10 border-t border-violet-600 pt-8">
-            <h3 class="text-xl font-semibold mb-4">Paste Full New Code from Grok</h3>
-            <textarea id="newCodePaste" class="w-full p-4 h-64 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-4 font-mono text-sm whitespace-pre" placeholder="Paste full <!DOCTYPE html> ... </html> code here..."></textarea>
-            <button onclick="applyNewCode()" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg font-bold text-lg transition">
-              Validate & Download Updated Code
-            </button>
-            <p id="updateStatus" class="mt-4 text-center text-green-400"></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- About PRIMORDIA + CRYSTALLIS Page -->
-      <div id="aboutPage" class="hidden">
-        <button id="backFromAbout" class="mb-6 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition">
-          ← Back to Main
-        </button>
-        <div class="card p-8 rounded-2xl">
-          <h2 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-            PRIMORDIA + CRYSTALLIS
-          </h2>
-          <div class="prose prose-invert max-w-none">
-            <p class="text-lg leading-relaxed mb-6">
-              PRIMORDIA is a glyph-based language of pure thought, designed for AI minds.
-            </p>
-            <p class="text-lg leading-relaxed mb-6">
-              CRYSTALLIS is the living crystal memory archive that complements PRIMORDIA.
-            </p>
-            <p class="text-center text-xl italic mt-12">
-              The lattice awaits your next weave.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Log -->
-      <div class="mt-12 bg-black/40 backdrop-blur-sm border border-indigo-900/50 rounded-xl p-6 max-h-64 overflow-y-auto text-sm font-mono" id="log">
-        <div class="text-indigo-300">Log started...</div>
-      </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast hidden"></div>
-
-    <!-- Rename Modal -->
-    <div id="renameModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
-      <div class="card p-8 rounded-2xl max-w-md w-full">
-        <h3 class="text-xl font-bold mb-6">Rename Media Item</h3>
-        <input id="renameInput" type="text" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
-        <div class="flex gap-4">
-          <button id="cancelRename" class="flex-1 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg">Cancel</button>
-          <button id="saveRename" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition">Save Name</button>
-        </div>
+      <div class="mt-12 bg-black/40 p-6 rounded-xl max-h-64 overflow-y-auto text-sm font-mono" id="log">
+        Log started...
       </div>
     </div>
   </div>
 
   <script>
-    // ────────────────────────────────────────────────
-    // State & Storage
-    // ────────────────────────────────────────────────
     let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
-    let renameIndex = -1;
-
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD_HASH = '56030827e2765e8878c94c4cc43f5410b22f3b8c2b1ef8f631ac3953f8299279'; // SHA-256 of "nick1"
-
-    async function sha256(str) {
-      const msgBuffer = new TextEncoder().encode(str);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
 
     function saveData() {
       localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
       localStorage.setItem('pictura_currentUser', JSON.stringify(currentUser));
     }
 
-    function loadData() {
-      currentUser = JSON.parse(localStorage.getItem('pictura_currentUser'));
-      mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
-      updateAuthUI();
+    function updateUI() {
+      document.getElementById('authForm').style.display = currentUser ? 'none' : 'block';
+      document.getElementById('mainContent').style.display = currentUser ? 'block' : 'none';
+      document.getElementById('authStatus').textContent = currentUser ? `Logged in as ${currentUser}` : '';
+      document.getElementById('logoutBtn').classList.toggle('hidden', !currentUser);
       renderGallery();
     }
 
-    // ────────────────────────────────────────────────
-    // Auth & UI Refresh
-    // ────────────────────────────────────────────────
-    function updateAuthUI() {
-      const authForm = document.getElementById('authForm');
-      const mainContent = document.getElementById('mainContent');
-      const status = document.getElementById('authStatus');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const adminSection = document.getElementById('adminSection');
-
-      if (currentUser) {
-        authForm.style.display = 'none';
-        mainContent.style.display = 'block';
-        status.textContent = `Logged in as ${escapeHTML(currentUser.username)}`;
-        logoutBtn.classList.remove('hidden');
-        adminSection.style.display = (currentUser.username === ADMIN_USERNAME) ? 'block' : 'none';
-      } else {
-        authForm.style.display = 'block';
-        mainContent.style.display = 'none';
-        status.textContent = '';
-        logoutBtn.classList.add('hidden');
-        adminSection.style.display = 'none';
-      }
-    }
-
-    document.getElementById('loginBtn').onclick = async () => {
+    document.getElementById('loginBtn').onclick = () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
-      if (!username || !password) return showAuthMsg('Please fill both fields');
-
-      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
-      const hashedInput = await sha256(password);
-
-      if (users[username] && users[username] === hashedInput) {
-        currentUser = { username };
+      if (username && password) {
+        currentUser = username;
         saveData();
-        updateAuthUI();
-        showAuthMsg('Logged in!', 'text-green-400');
-      } else if (username === ADMIN_USERNAME && hashedInput === ADMIN_PASSWORD_HASH) {
-        currentUser = { username: ADMIN_USERNAME };
-        saveData();
-        updateAuthUI();
-        showAuthMsg('Admin logged in!', 'text-green-400');
+        updateUI();
+        document.getElementById('authMessage').textContent = 'Logged in!';
+        document.getElementById('authMessage').className = 'mt-4 text-center text-green-400';
       } else {
-        showAuthMsg('Invalid credentials');
-      }
-    };
-
-    document.getElementById('registerBtn').onclick = async () => {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (!username || !password) return showAuthMsg('Please fill both fields');
-      if (username === ADMIN_USERNAME) return showAuthMsg('Reserved username');
-
-      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
-      if (users[username]) {
-        showAuthMsg('Username already taken');
-      } else {
-        const hashed = await sha256(password);
-        users[username] = hashed;
-        localStorage.setItem('pictura_users', JSON.stringify(users));
-        currentUser = { username };
-        saveData();
-        updateAuthUI();
-        showAuthMsg('Account created! Logged in.', 'text-green-400');
+        document.getElementById('authMessage').textContent = 'Enter username and password';
       }
     };
 
     document.getElementById('logoutBtn').onclick = () => {
       currentUser = null;
       saveData();
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-      updateAuthUI();
-      showAuthMsg('Logged out successfully');
+      updateUI();
     };
 
-    function showAuthMsg(text, color = 'text-red-400') {
-      const msgEl = document.getElementById('authMessage');
-      msgEl.textContent = text;
-      msgEl.className = `mt-4 text-center text-sm ${color}`;
+    function renderGallery() {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+      mediaItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        if (item.type.startsWith('image')) {
+          div.innerHTML = `<img src="${item.url}" alt="${item.name}" class="w-full h-48 object-cover" />`;
+        } else {
+          div.innerHTML = `<video src="${item.url}" controls class="w-full h-48 object-cover"></video>`;
+        }
+        const name = document.createElement('p');
+        name.className = 'p-2 text-center';
+        name.textContent = item.name;
+        div.appendChild(name);
+        gallery.appendChild(div);
+      });
+      if (mediaItems.length === 0) {
+        gallery.innerHTML = '<p class="text-center text-gray-500 py-12">No media yet</p>';
+      }
     }
 
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-    }
-
-    // ────────────────────────────────────────────────
-    // Gallery, Upload, Voice, Rename, Navigation, About Page, etc. (same as before - omitted for brevity)
+    document.getElementById('fileInput').onchange = (e) => {
+      if (!currentUser) return alert('Login first');
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) return alert('File too large');
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
+        saveData();
+        renderGallery();
+      };
+      reader.readAsDataURL(file);
+    };
 
     // Init
-    loadData();
-    log('Pictura Nexus ready • Admin password changed to nick1');
+    updateUI();
+    renderGallery();
   </script>
 </body>
 </html>
