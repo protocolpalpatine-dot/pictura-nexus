@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pictura Nexus • Secure Media Hub</title>
+  <title>Pictura Nexus</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; padding: 2rem; }
-    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; padding: 2rem; text-align: center; cursor: pointer; }
-    .upload-area:hover { background: rgba(99,102,241,0.1); }
-    .mic-btn { background: #ef4444; color: white; padding: 1.5rem 3rem; border-radius: 9999px; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem; margin: 0 auto 2rem; cursor: pointer; }
-    .mic-btn.listening { animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 25px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; padding: 1.5rem; }
+    button { padding: 1rem 2rem; margin: 0.5rem; border-radius: 9999px; cursor: pointer; font-size: 1.1rem; }
+    #micBtn { background: #ef4444; color: white; }
+    #uploadArea { border: 3px dashed #6366f1; padding: 3rem; margin: 2rem auto; max-width: 400px; border-radius: 1rem; cursor: pointer; }
+    #uploadArea:hover { background: rgba(99,102,241,0.1); }
     #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
     .gallery-item { background: #1e1e3c; border-radius: 1rem; overflow: hidden; }
     .gallery-item img, .gallery-item video { width: 100%; height: 200px; object-fit: cover; }
@@ -20,16 +19,9 @@
 </head>
 <body>
   <div class="max-w-5xl mx-auto">
+    <h1 class="text-5xl font-bold text-center mb-8 text-purple-300">Pictura Nexus</h1>
 
-    <header class="text-center mb-10">
-      <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-        Pictura Nexus
-      </h1>
-      <p id="authStatus" class="mt-2 text-gray-300"></p>
-      <button id="logoutBtn" class="hidden mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg">Logout</button>
-    </header>
-
-    <!-- Login Form -->
+    <!-- Login -->
     <div id="authForm" class="card max-w-md mx-auto">
       <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
       <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg" />
@@ -41,16 +33,14 @@
     <!-- Main Content -->
     <div id="mainContent" style="display:none;">
       <div class="flex justify-center gap-8 mb-10">
-        <button id="micBtn" class="mic-btn">
-          🎤 Speak Command
-        </button>
-        <label class="upload-area">
-          <span class="block text-lg font-medium">Upload Photo/Video (max 50MB)</span>
+        <button id="micBtn">🎤 Speak Command</button>
+        <label id="uploadArea" class="text-center">
+          📤 Upload Photo or Video (max 50MB)
           <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
         </label>
       </div>
 
-      <div id="gallery"></div>
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
       <div class="mt-12 bg-black/40 p-6 rounded-xl max-h-64 overflow-y-auto text-sm font-mono" id="log">
         Log started...
@@ -62,47 +52,48 @@
     let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
 
-    function saveData() {
-      localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
-      localStorage.setItem('pictura_currentUser', JSON.stringify(currentUser));
-    }
-
     function updateUI() {
       document.getElementById('authForm').style.display = currentUser ? 'none' : 'block';
       document.getElementById('mainContent').style.display = currentUser ? 'block' : 'none';
-      document.getElementById('authStatus').textContent = currentUser ? `Logged in as ${currentUser}` : '';
-      document.getElementById('logoutBtn').classList.toggle('hidden', !currentUser);
-      renderGallery();
     }
 
     document.getElementById('loginBtn').onclick = () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
-      if (username && password) {
-        currentUser = username;
-        saveData();
+      if (username === 'admin' && password === 'nick1') {
+        currentUser = 'admin';
+        localStorage.setItem('pictura_currentUser', 'admin');
         updateUI();
-        document.getElementById('authMessage').textContent = 'Logged in!';
-        document.getElementById('authMessage').className = 'mt-4 text-center text-green-400';
       } else {
-        document.getElementById('authMessage').textContent = 'Enter username and password';
+        alert('Use admin / nick1');
       }
     };
 
-    document.getElementById('logoutBtn').onclick = () => {
-      currentUser = null;
-      saveData();
-      updateUI();
+    document.getElementById('uploadArea').onclick = () => {
+      document.getElementById('fileInput').click();
+    };
+
+    document.getElementById('fileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
+          localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
+          renderGallery();
+        };
+        reader.readAsDataURL(file);
+      }
     };
 
     function renderGallery() {
-      const gallery = document.getElementById('gallery');
-      gallery.innerHTML = '';
+      const g = document.getElementById('gallery');
+      g.innerHTML = '';
       mediaItems.forEach(item => {
         const div = document.createElement('div');
         div.className = 'gallery-item';
         if (item.type.startsWith('image')) {
-          div.innerHTML = `<img src="${item.url}" alt="${item.name}" class="w-full h-48 object-cover" />`;
+          div.innerHTML = `<img src="${item.url}" class="w-full h-48 object-cover" />`;
         } else {
           div.innerHTML = `<video src="${item.url}" controls class="w-full h-48 object-cover"></video>`;
         }
@@ -110,28 +101,14 @@
         name.className = 'p-2 text-center';
         name.textContent = item.name;
         div.appendChild(name);
-        gallery.appendChild(div);
+        g.appendChild(div);
       });
-      if (mediaItems.length === 0) {
-        gallery.innerHTML = '<p class="text-center text-gray-500 py-12">No media yet</p>';
-      }
     }
 
-    document.getElementById('fileInput').onchange = (e) => {
-      if (!currentUser) return alert('Login first');
-      const file = e.target.files[0];
-      if (!file) return;
-      if (file.size > 50 * 1024 * 1024) return alert('File too large');
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
-        saveData();
-        renderGallery();
-      };
-      reader.readAsDataURL(file);
-    };
-
     // Init
+    if (localStorage.getItem('pictura_currentUser') === 'admin') {
+      currentUser = 'admin';
+    }
     updateUI();
     renderGallery();
   </script>
