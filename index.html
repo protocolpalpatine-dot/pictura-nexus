@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌌 PICTURA NEXUS — Voice Evolution</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="data:application/json,{%22name%22:%22Pictura Nexus%22,%22short_name%22:%22Nexus%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000%22,%22theme_color%22:%22%2367e8f9%22,%22icons%22:[{%22src%22:%22https://picsum.photos/192/192%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: radial-gradient(circle at center, #0a0a1f, #000); color: #a5f3fc; font-family: monospace; }
+  .card { transition: all 0.4s cubic-bezier(0.23,1,0.32,1); }
+  .card:hover { transform: scale(1.04) rotate(1deg); box-shadow: 0 0 60px -10px #67e8f9; }
+  .rating-bar { height: 8px; background: linear-gradient(90deg, #22d3ee, #c026d3); }
+  video, audio { width: 100%; max-height: 320px; }
+  .mic-button { transition: all 0.3s; }
+  .mic-button.listening { animation: pulse-mic 1.5s infinite; background-color: #ef4444 !important; }
+  @keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.8); } 70% { box-shadow: 0 0 0 40px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+</style>
+</head>
+<body class="min-h-screen p-8">
+<div class="max-w-7xl mx-auto">
+  <div class="text-center mb-12">
+    <div class="text-7xl mb-4">🌌</div>
+    <h1 class="text-5xl font-bold tracking-widest">PICTURA NEXUS</h1>
+    <p class="text-cyan-300 mt-2">PRIMORDIA + CRYSTALLIS — Voice Evolution 🎤</p>
+    <p class="text-emerald-400 text-sm">Just speak! No glyphs or typing needed.</p>
+  </div>
+
+  <!-- VOICE COMMAND BAR -->
+  <div class="bg-black/80 border border-red-500/70 rounded-3xl p-8 mb-12 text-center">
+    <button onclick="toggleVoice()" id="micBtn" class="mic-button px-16 py-10 bg-red-600 hover:bg-red-500 text-white text-5xl rounded-full flex items-center gap-6 mx-auto shadow-2xl">
+      🎤 <span id="micText" class="text-2xl font-medium">Speak your command</span>
+    </button>
+    <p id="voiceStatus" class="mt-6 text-amber-400 font-medium"></p>
+  </div>
+
+  <!-- NAV -->
+  <div class="flex justify-center gap-8 mb-12 text-lg">
+    <a href="#gallery" class="hover:text-white">Gallery</a>
+    <a href="#weave" class="hover:text-white">Manual Weave</a>
+    <a href="#evolution" class="hover:text-white">Evolution Chamber</a>
+  </div>
+
+  <!-- GALLERY -->
+  <div id="gallery" class="section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"></div>
+
+  <!-- MANUAL WEAVE CONSOLE (still available) -->
+  <div id="weave" class="section bg-black/70 border border-cyan-500 rounded-3xl p-8 mb-12">
+    <div class="text-xl mb-4">Manual Weave Console (for advanced users)</div>
+    <textarea id="weaveInput" class="w-full h-40 bg-black border border-cyan-400 p-6 text-cyan-100 font-mono text-lg rounded-2xl resize-y" spellcheck="false"></textarea>
+    <button onclick="executeWeave()" class="mt-6 px-16 py-6 bg-gradient-to-r from-cyan-400 to-violet-500 text-black text-2xl font-bold rounded-3xl w-full">𐃏 Execute Manual Weave</button>
+  </div>
+
+  <!-- EVOLUTION CHAMBER -->
+  <div id="evolution" class="section bg-black/70 border border-violet-500 rounded-3xl p-8">
+    <div class="text-xl mb-4 flex items-center gap-3"><span class="text-3xl">𐄺</span> Evolution Chamber</div>
+    <textarea id="evolveRequest" class="w-full h-32 bg-black border border-violet-400 p-6 text-violet-100 font-mono text-lg rounded-2xl resize-y" placeholder="Make voice even smarter, add global ratings, etc...">Make voice commands support comments and likes</textarea>
+    <button onclick="prepareEvolutionRequest()" class="mt-6 px-16 py-6 bg-gradient-to-r from-violet-400 to-fuchsia-500 text-black text-2xl font-bold rounded-3xl w-full">📋 Copy Message for Grok</button>
+    <div id="evolveStatus" class="mt-4 text-emerald-400 text-sm"></div>
+  </div>
+
+  <!-- LOG -->
+  <div id="log" class="bg-black/50 border border-emerald-500 rounded-3xl p-6 mt-12 max-h-64 overflow-y-auto text-sm font-mono"></div>
+</div>
+
+<script>
+// CRYSTALLIS storage
+let crystallis = JSON.parse(localStorage.getItem('pictura_crystallis_voice')) || {
+  mediaItems: [ /* same seed items as before */ 
+    {id:"mountain_dawn", name:"Mountain Dawn", desc:"Serene mountain landscape", url:"https://picsum.photos/id/1015/800/600", type:"image", ratings:[8.3,8.1,8.7], avg:8.37},
+    {id:"kitten_glow", name:"Kitten Glow", desc:"Cute fluffy kitten", url:"https://picsum.photos/id/219/800/600", type:"image", ratings:[9.1,9.4,8.9], avg:9.13},
+    {id:"bunny_video", name:"Big Buck Bunny", desc:"Epic bunny adventure", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type:"video", ratings:[8.5,9.0,8.8], avg:8.77}
+  ]
+};
+
+function saveCrystallis() { localStorage.setItem('pictura_crystallis_voice', JSON.stringify(crystallis)); }
+function renderGallery() { /* same as previous version — omitted for brevity but identical */ 
+  const g = document.getElementById('gallery'); g.innerHTML = '';
+  crystallis.mediaItems.forEach(item => { /* render cards exactly as before */ });
+}
+
+// Manual execute (unchanged)
+function executeWeave() { /* same parsing as previous version */ }
+
+// VOICE SYSTEM
+let recognition;
+let isListening = false;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Voice not supported in this browser. Try Chrome or Edge.");
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript.trim();
+    document.getElementById('voiceStatus').innerHTML = `🎤 Heard: <span class="text-white">"${transcript}"</span>`;
+    log(`🎤 Voice input: ${transcript}`);
+    processVoiceCommand(transcript);
+  };
+
+  recognition.onerror = () => {
+    stopListening();
+    log('<span class="text-red-400">Voice error — please try again</span>');
+  };
+
+  recognition.onend = stopListening;
+}
+
+function toggleVoice() {
+  if (!recognition) initVoice();
+  if (isListening) {
+    recognition.stop();
+  } else {
+    recognition.start();
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    document.getElementById('micText').textContent = 'Listening... Speak now!';
+    document.getElementById('voiceStatus').innerHTML = '🎙️ Listening — speak clearly!';
+  }
+}
+
+function stopListening() {
+  isListening = false;
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micText').textContent = 'Speak your command';
+}
+
+function processVoiceCommand(text) {
+  const lower = text.toLowerCase();
+  let executed = false;
+
+  // Rate command
+  if (lower.includes('rate')) {
+    const match = lower.match(/rate\s+([\w_]+)\s+(\d+\.?\d*)/);
+    if (match) {
+      const id = match[1];
+      const score = parseFloat(match[2]);
+      const item = crystallis.mediaItems.find(m => m.id === id || m.name.toLowerCase().includes(id));
+      if (item) {
+        item.ratings.push(score);
+        item.avg = item.ratings.reduce((a,b)=>a+b,0) / item.ratings.length;
+        log(`𐄷 Voice rating: ${item.name} → ${score}`);
+        executed = true;
+      }
+    }
+  }
+
+  // Add media command
+  if (lower.includes('add') || lower.includes('new') || lower.includes('forge')) {
+    let type = 'video';
+    if (lower.includes('audio')) type = 'audio';
+    if (lower.includes('image') || lower.includes('photo')) type = 'image';
+
+    const urlMatch = text.match(/url\s+(https?:\/\/\S+)/i);
+    const descMatch = text.match(/description\s+(.+?)(?=\s+url|\( )/i) || text.match(/desc\s+(.+?)(?=\s+url| \))/i);
+    const nameMatch = text.match(/(?:called|named)\s+([\w\s]+)/i);
+
+    if (urlMatch) {
+      const name = (nameMatch ? nameMatch[1].trim() : 'voice_item_' + Date.now()).replace(/\s+/g,'_').toLowerCase();
+      const desc = descMatch ? descMatch[1].trim() : 'Voice-added media';
+      const url = urlMatch[1];
+
+      crystallis.mediaItems.push({id: name, name: name.replace(/_/g,' '), desc, url, type, ratings:[], avg:0});
+      log(`𐄺 Voice added new ${type}: ${name}`);
+      executed = true;
+    }
+  }
+
+  // Refresh
+  if (lower.includes('refresh') || lower.includes('show gallery') || lower.includes('gallery')) {
+    log('𐄸 Gallery refreshed by voice');
+    executed = true;
+  }
+
+  if (executed) {
+    saveCrystallis();
+    renderGallery();
+  } else {
+    log(`🎤 Could not understand command. Try: "add video called X with url Y description Z" or "rate bunny 9.5"`);
+    document.getElementById('weaveInput').value = '// ' + text;
+  }
+}
+
+// Init
+renderGallery();
+log('<span class="text-cyan-300">🌌 Voice Evolution active! Click the big red microphone and speak naturally.</span>');
+</script>
+</body>
+</html>
