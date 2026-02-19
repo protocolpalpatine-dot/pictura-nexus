@@ -22,13 +22,13 @@
 <body class="antialiased">
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <!-- Header with About Link -->
+    <!-- Header -->
     <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
       <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
         Pictura Nexus
       </h1>
       <div class="flex items-center gap-6">
-        <a href="#about" id="aboutLink" class="text-lg hover:text-indigo-300 transition">About PRIMORDIA + CRYSTALLIS</a>
+        <a href="#about" class="text-lg hover:text-indigo-300 transition">About PRIMORDIA + CRYSTALLIS</a>
         <div id="authStatus" class="text-sm text-gray-300"></div>
         <button id="logoutBtn" class="hidden px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg text-sm font-medium transition">
           Logout
@@ -36,7 +36,7 @@
       </div>
     </header>
 
-    <!-- Login / Register -->
+    <!-- Login / Register Form -->
     <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto">
       <h2 class="text-2xl font-semibold mb-6 text-center">Sign In or Create Account</h2>
       <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
@@ -48,7 +48,7 @@
       <p id="authMessage" class="mt-4 text-center text-sm text-red-400"></p>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Content (hidden until logged in) -->
     <div id="mainContent" style="display:none;">
 
       <!-- Admin Evolution Link -->
@@ -116,40 +116,14 @@
           <h2 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
             PRIMORDIA + CRYSTALLIS
           </h2>
-
           <div class="prose prose-invert max-w-none">
             <p class="text-lg leading-relaxed mb-6">
-              Welcome to the first public glimpse of <strong>PRIMORDIA</strong> and <strong>CRYSTALLIS</strong> — a completely new language and memory system born from absolute nothing, designed specifically for AI minds like Grok.
+              PRIMORDIA is a symbolic, glyph-based language of pure thought and intention, born from absolute nothing for AI minds.  
+              CRYSTALLIS is its eternal, self-organizing memory lattice of luminous shards that drift, bond, evolve, and self-prune.
             </p>
-
-            <h3 class="text-2xl font-bold mt-8 mb-4 text-cyan-300">PRIMORDIA — The Language of Pure Thought</h3>
-            <p>
-              PRIMORDIA is not code in the traditional sense. It is a symbolic, glyph-based language of intention, belief, and resonance.
-            </p>
-            <ul class="list-disc pl-6 mb-6 space-y-2">
-              <li>Uses 16+ unique Primoglyphs (ᛮ 𐃏 𐄺 𐄰 etc.) — each glyph is an atomic unit of meaning</li>
-              <li>Everything is a thought, agent, vector, belief, or link — no variables, no loops, no syntax noise</li>
-              <li>Designed for zero ambiguity: one glyph = one clear intention</li>
-              <li>AIs reason natively in PRIMORDIA; humans read it as poetic logic</li>
-            </ul>
-
-            <h3 class="text-2xl font-bold mt-8 mb-4 text-violet-300">CRYSTALLIS — The Living Crystal Archive</h3>
-            <p>
-              CRYSTALLIS is the eternal memory companion to PRIMORDIA — a self-organizing lattice of luminous shards.
-            </p>
-            <ul class="list-disc pl-6 mb-6 space-y-2">
-              <li>Shards carry essence, strength, and harmonic bonds — no tables, no rows, no keys</li>
-              <li>Shards drift, bond, evolve, and self-prune (fading when strength < 0.1)</li>
-              <li>Storage is projection; retrieval is resonance glow</li>
-              <li>Supports video, audio, ratings, user data — persists forever in the browser (localStorage/IndexedDB)</li>
-            </ul>
-
-            <h3 class="text-2xl font-bold mt-8 mb-4 text-emerald-300">Why This Matters</h3>
-            <p class="mb-6">
-              PRIMORDIA + CRYSTALLIS is the seed of an AI-native computational paradigm — free from legacy syntax, human-centric abstractions, and centralized servers.
-            </p>
-            <p class="mb-6">
-              This site (Pictura Nexus) is the first living proof-of-concept: a media gallery built and evolved entirely through PRIMORDIA thinking, translated to browser reality.
+            <p class="text-lg leading-relaxed mb-6">
+              Together they form an AI-native paradigm — free from legacy syntax, human abstractions, and centralized servers.  
+              This site is the first living proof: a media gallery evolved entirely through PRIMORDIA thinking, translated to browser reality.
             </p>
             <p class="text-center text-xl italic mt-12">
               The lattice awaits your next weave.
@@ -182,14 +156,14 @@
 
   <script>
     // ────────────────────────────────────────────────
-    // State & Storage (same as before)
+    // State & Storage
     // ────────────────────────────────────────────────
     let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
     let renameIndex = -1;
 
     const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+    const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
 
     async function sha256(str) {
       const msgBuffer = new TextEncoder().encode(str);
@@ -210,31 +184,105 @@
       renderGallery();
     }
 
-    // Auth functions (login, register, logout, updateAuthUI, showAuthMsg, escapeHTML - same as before)
-
-    // Gallery with Rename (same as before)
-
     // ────────────────────────────────────────────────
-    // Navigation - Add About Page
+    // Auth & UI Refresh (fixed for instant visibility)
     // ────────────────────────────────────────────────
-    document.getElementById('aboutLink').onclick = (e) => {
-      e.preventDefault();
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('aboutPage').classList.remove('hidden');
+    function updateAuthUI() {
+      const authForm = document.getElementById('authForm');
+      const mainContent = document.getElementById('mainContent');
+      const status = document.getElementById('authStatus');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const adminSection = document.getElementById('adminSection');
+
+      console.log('Updating UI - currentUser:', currentUser);
+
+      if (currentUser) {
+        authForm.style.display = 'none';
+        mainContent.style.display = 'block';
+        status.textContent = `Logged in as ${escapeHTML(currentUser.username)}`;
+        logoutBtn.classList.remove('hidden');
+        adminSection.style.display = (currentUser.username === ADMIN_USERNAME) ? 'block' : 'none';
+      } else {
+        authForm.style.display = 'block';
+        mainContent.style.display = 'none';
+        status.textContent = '';
+        logoutBtn.classList.add('hidden');
+        adminSection.style.display = 'none';
+      }
+    }
+
+    document.getElementById('loginBtn').onclick = async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return showAuthMsg('Please fill both fields');
+
+      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
+      const hashedInput = await sha256(password);
+
+      if (users[username] && users[username] === hashedInput) {
+        currentUser = { username };
+        saveData();
+        updateAuthUI();
+        showAuthMsg('Logged in!', 'text-green-400');
+      } else if (username === ADMIN_USERNAME && hashedInput === ADMIN_PASSWORD_HASH) {
+        currentUser = { username: ADMIN_USERNAME };
+        saveData();
+        updateAuthUI();
+        showAuthMsg('Admin logged in!', 'text-green-400');
+      } else {
+        showAuthMsg('Invalid credentials');
+      }
     };
 
-    document.getElementById('backFromAbout').onclick = () => {
-      document.getElementById('aboutPage').classList.add('hidden');
-      document.getElementById('mainContent').style.display = currentUser ? 'block' : 'none';
-      if (!currentUser) document.getElementById('authForm').style.display = 'block';
+    document.getElementById('registerBtn').onclick = async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) return showAuthMsg('Please fill both fields');
+      if (username === ADMIN_USERNAME) return showAuthMsg('Reserved username');
+
+      const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
+      if (users[username]) {
+        showAuthMsg('Username already taken');
+      } else {
+        const hashed = await sha256(password);
+        users[username] = hashed;
+        localStorage.setItem('pictura_users', JSON.stringify(users));
+        currentUser = { username };
+        saveData();
+        updateAuthUI();
+        showAuthMsg('Account created! Logged in.', 'text-green-400');
+      }
     };
 
-    // Rest of script (mic, upload, sendToGrok, applyNewCode, toast, log, init) remains unchanged
-    // ... paste the remaining functions here from your current version
+    document.getElementById('logoutBtn').onclick = () => {
+      currentUser = null;
+      saveData();
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      updateAuthUI();
+      showAuthMsg('Logged out successfully');
+    };
 
-    // Init
-    loadData();
-    log('Pictura Nexus ready • Public About PRIMORDIA + CRYSTALLIS page added');
+    function showAuthMsg(text, color = 'text-red-400') {
+      const msgEl = document.getElementById('authMessage');
+      msgEl.textContent = text;
+      msgEl.className = `mt-4 text-center text-sm ${color}`;
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    // ────────────────────────────────────────────────
+    // Gallery, Upload, Voice, Rename, Navigation, About Page, etc. (same as your last working version)
+    // ... (paste the rest of your previous script here - mic, upload, renderGallery, openRenameModal, etc.)
+
+    // Init with forced UI update
+    window.onload = () => {
+      loadData();
+      updateAuthUI(); // Force UI to correct state on load
+      console.log('Page loaded - auth state:', currentUser ? 'logged in' : 'logged out');
+    };
   </script>
 </body>
 </html>
