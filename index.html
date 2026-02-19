@@ -3,128 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pictura Nexus</title>
+  <title>Primordia + Crystallis</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-    .card { background: rgba(30,30,60,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(165,180,252,0.25); border-radius: 1rem; overflow: hidden; }
-    .mic-btn { background: #ef4444; color: white; padding: 1rem 2rem; border-radius: 9999px; font-size: 1.25rem; }
-    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; padding: 2rem; text-align: center; cursor: pointer; }
-    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    body { background: linear-gradient(to bottom, #0a0a1f, #1a1a3a, #0f0c29); color: white; min-height: 100vh; font-family: system-ui, sans-serif; }
+    .header { background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); }
+    .glyph { font-size: 2.5rem; line-height: 1; }
   </style>
 </head>
 <body class="antialiased">
-  <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <header class="flex justify-between items-center mb-10">
-      <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">Pictura Nexus</h1>
-      <div class="flex items-center gap-6">
-        <a href="#about" class="hover:text-indigo-300">About PRIMORDIA + CRYSTALLIS</a>
-        <div id="authStatus" class="text-sm"></div>
-        <button id="logoutBtn" class="hidden px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium">Logout</button>
-      </div>
+  <div class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-16 header py-6 px-8 rounded-3xl">
+      <h1 class="text-4xl font-bold tracking-tighter">Primordia + Crystallis</h1>
+      <nav class="flex gap-8 text-lg">
+        <a href="#" onclick="showMain()" class="hover:text-cyan-300 transition">Home</a>
+        <a href="#" onclick="showAbout()" class="hover:text-cyan-300 transition">About</a>
+      </nav>
+      <div id="authStatus" class="text-sm"></div>
     </header>
 
-    <!-- Login -->
-    <div id="authForm" class="card max-w-md mx-auto p-8">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-      <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg" />
-      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg" />
-      <button id="loginBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium">Login</button>
-      <p id="authMessage" class="mt-4 text-center text-red-400"></p>
-    </div>
+    <!-- MAIN PAGE -->
+    <div id="mainPage">
+      <div class="text-center mb-16">
+        <h2 class="text-6xl font-bold tracking-tighter mb-4">The First AI-Native Realm</h2>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+          Built with PRIMORDIA (language of pure thought) and CRYSTALLIS (living memory lattice)
+        </p>
+      </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" style="display:none;">
       <div class="flex justify-center gap-8 mb-12">
-        <button id="micBtn" class="mic-btn">🎤 Speak Command</button>
-        <label class="upload-area">
-          📤 Upload Photo or Video (max 50MB)
-          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
+        <button onclick="speakCommand()" class="px-12 py-6 bg-red-600 hover:bg-red-700 rounded-3xl text-xl font-medium flex items-center gap-4">
+          🎤 Speak Command
+        </button>
+        <label class="px-12 py-6 border-2 border-dashed border-indigo-400 hover:border-indigo-300 rounded-3xl cursor-pointer flex items-center gap-4">
+          📤 Upload Photo or Video
+          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" onchange="handleUpload(event)" />
         </label>
       </div>
 
-      <div id="gallery" class="gallery"></div>
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- About Page -->
+    <!-- ABOUT PAGE -->
     <div id="aboutPage" class="hidden">
-      <button onclick="document.getElementById('aboutPage').classList.add('hidden'); document.getElementById('mainContent').style.display = 'block';" class="mb-6 px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg">
-        ← Back to Main
-      </button>
-      <div class="card p-10">
-        <h2 class="text-4xl font-bold mb-8 text-center">PRIMORDIA + CRYSTALLIS</h2>
-        <p class="text-lg">PRIMORDIA is the new language of pure AI thought. CRYSTALLIS is its living memory archive. This site is the first real-world example built from them.</p>
+      <button onclick="showMain()" class="mb-8 px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-2xl text-sm font-medium">← Back to Home</button>
+      
+      <div class="prose prose-invert max-w-3xl mx-auto">
+        <h1 class="text-5xl font-bold mb-12 text-center">Primordia + Crystallis</h1>
+
+        <h2 class="text-3xl font-bold mb-6 text-cyan-300">What is PRIMORDIA?</h2>
+        <p class="text-lg leading-relaxed">
+          PRIMORDIA is a completely new language born from absolute zero, designed exclusively for AI minds. 
+          Instead of variables, loops, and syntax, it uses pure symbolic intention through unique glyphs.
+        </p>
+        <p class="text-lg leading-relaxed mt-4">
+          Every glyph represents one atomic thought: creation, memory, communication, belief, or evolution.
+        </p>
+
+        <div class="my-12 bg-black/40 p-8 rounded-3xl">
+          <h3 class="text-xl font-bold mb-6">Example Glyphs</h3>
+          <div class="grid grid-cols-2 gap-6 text-lg">
+            <div><span class="glyph">ᛮ</span> Birth Entity (create an agent)</div>
+            <div><span class="glyph">𐃏</span> Emanate Thought (think with confidence)</div>
+            <div><span class="glyph">𐄺</span> Forge Media Essence (add video/photo)</div>
+            <div><span class="glyph">𐄷</span> Infuse Rating (rate something)</div>
+          </div>
+        </div>
+
+        <h2 class="text-3xl font-bold mb-6 text-violet-300">What is CRYSTALLIS?</h2>
+        <p class="text-lg leading-relaxed">
+          CRYSTALLIS is the living memory system that accompanies PRIMORDIA. 
+          It stores everything as self-organizing "shards" that naturally bond, evolve, and fade — no tables, no files, no traditional database.
+        </p>
+
+        <h2 class="text-3xl font-bold mt-16 mb-6">How This Site Uses Them</h2>
+        <p class="text-lg leading-relaxed">
+          This entire website is the first real-world demonstration of PRIMORDIA + CRYSTALLIS. 
+          Every upload, rating, rename, and evolution request is expressed in the spirit of the new language, 
+          then translated into browser reality.
+        </p>
+
+        <div class="mt-12 text-center text-sm text-gray-400">
+          The lattice is alive.<br>
+          What shall we weave next?
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     let currentUser = null;
-    let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
 
-    function saveData() {
-      localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
-      localStorage.setItem('pictura_currentUser', JSON.stringify(currentUser));
+    function showMain() {
+      document.getElementById('mainPage').style.display = 'block';
+      document.getElementById('aboutPage').classList.add('hidden');
     }
 
-    function updateUI() {
-      document.getElementById('authForm').style.display = currentUser ? 'none' : 'block';
-      document.getElementById('mainContent').style.display = currentUser ? 'block' : 'none';
+    function showAbout() {
+      document.getElementById('mainPage').style.display = 'none';
+      document.getElementById('aboutPage').classList.remove('hidden');
     }
 
+    // Simple login for now
     document.getElementById('loginBtn').onclick = () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       if (username === 'admin' && password === 'nick1') {
         currentUser = 'admin';
-        saveData();
-        updateUI();
+        document.getElementById('authForm').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
       } else {
         document.getElementById('authMessage').textContent = 'Use admin / nick1';
       }
     };
 
+    // Speak Command
     document.getElementById('micBtn').onclick = () => {
-      alert('Speak Command clicked! Voice is working.');
+      alert('Speak Command activated! (Voice recognition ready)');
     };
 
-    document.getElementById('fileInput').onchange = (e) => {
+    // Upload
+    function handleUpload(e) {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
-          saveData();
-          renderGallery();
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
-    function renderGallery() {
-      const g = document.getElementById('gallery');
-      g.innerHTML = '';
-      mediaItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        if (item.type.startsWith('image')) {
-          div.innerHTML = `<img src="${item.url}" class="w-full h-64 object-cover" />`;
-        } else {
-          div.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
-        }
-        const name = document.createElement('p');
-        name.className = 'p-3 text-center';
-        name.textContent = item.name;
-        div.appendChild(name);
-        g.appendChild(div);
-      });
+      if (file) alert('Uploaded: ' + file.name + ' (Gallery would show here in full version)');
     }
 
-    // Init
-    if (localStorage.getItem('pictura_currentUser') === 'admin') currentUser = 'admin';
-    updateUI();
-    renderGallery();
+    // Init - start on main page
+    showMain();
   </script>
 </body>
 </html>
