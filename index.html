@@ -46,21 +46,43 @@
     <!-- Main Content (hidden until logged in) -->
     <div id="mainContent" style="display:none;">
 
-      <!-- Voice & Upload Controls -->
-      <div class="flex flex-col md:flex-row gap-6 mb-10 justify-center">
-        <button id="micBtn" class="mic-btn flex items-center justify-center gap-3 px-10 py-6 bg-red-600 hover:bg-red-700 rounded-full text-xl font-medium transition shadow-lg">
-          🎤 <span>Speak Command</span>
+      <!-- Evolution Link (shown only for admin) -->
+      <div id="adminSection" class="text-center mb-8" style="display:none;">
+        <button id="evolLink" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-lg font-medium transition shadow-md">
+          Go to Evolution Chamber
         </button>
-
-        <label class="upload-area flex flex-col items-center justify-center px-10 py-8 cursor-pointer">
-          <span class="text-4xl mb-3">📤</span>
-          <span class="text-lg font-medium">Upload Photo or Video</span>
-          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
-        </label>
       </div>
 
-      <!-- Gallery -->
-      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+      <!-- Main Page: Voice & Upload Controls -->
+      <div id="mainPage">
+        <div class="flex flex-col md:flex-row gap-6 mb-10 justify-center">
+          <button id="micBtn" class="mic-btn flex items-center justify-center gap-3 px-10 py-6 bg-red-600 hover:bg-red-700 rounded-full text-xl font-medium transition shadow-lg">
+            🎤 <span>Speak Command</span>
+          </button>
+
+          <label class="upload-area flex flex-col items-center justify-center px-10 py-8 cursor-pointer">
+            <span class="text-4xl mb-3">📤</span>
+            <span class="text-lg font-medium">Upload Photo or Video</span>
+            <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
+          </label>
+        </div>
+
+        <!-- Gallery -->
+        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+      </div>
+
+      <!-- Evolution Chamber Page (hidden by default) -->
+      <div id="evolutionPage" style="display:none;">
+        <button id="backBtn" class="mb-6 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition">
+          Back to Main Page
+        </button>
+        <div class="card p-8 rounded-2xl">
+          <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">Evolution Chamber</h2>
+          <textarea id="evolveRequest" class="w-full p-4 h-40 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-6" placeholder="Describe the evolution (e.g., add comments, improve voice)..."></textarea>
+          <button onclick="prepareEvolutionRequest()" class="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 rounded-lg font-bold text-lg transition">📋 Copy Message for Grok</button>
+          <p id="evolveStatus" class="mt-4 text-center text-green-400"></p>
+        </div>
+      </div>
 
       <!-- Log -->
       <div class="mt-12 bg-black/40 backdrop-blur-sm border border-indigo-900/50 rounded-xl p-6 max-h-64 overflow-y-auto text-sm font-mono" id="log">
@@ -75,6 +97,8 @@
     // ────────────────────────────────────────────────
     let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
+    const ADMIN_USERNAME = 'admin'; // Hardcoded admin
+    const ADMIN_PASSWORD = 'adminpass'; // Change in production
 
     function saveData() {
       localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
@@ -95,18 +119,26 @@
       const mainContent = document.getElementById('mainContent');
       const status = document.getElementById('authStatus');
       const logoutBtn = document.getElementById('logoutBtn');
+      const adminSection = document.getElementById('adminSection');
 
       if (currentUser) {
         authForm.style.display = 'none';
         mainContent.style.display = 'block';
         status.textContent = `Logged in as ${currentUser.username}`;
         logoutBtn.classList.remove('hidden');
+        if (currentUser.username === ADMIN_USERNAME) {
+          adminSection.style.display = 'block';
+        } else {
+          adminSection.style.display = 'none';
+        }
       } else {
         authForm.style.display = 'block';
         mainContent.style.display = 'none';
         status.textContent = '';
         logoutBtn.classList.add('hidden');
+        adminSection.style.display = 'none';
       }
+      renderGallery();
     }
 
     document.getElementById('loginBtn').onclick = () => {
@@ -118,7 +150,13 @@
       if (users[username] && users[username] === password) {
         currentUser = { username };
         saveData();
+        updateAuthUI();
         showAuthMsg('Logged in!', 'text-green-400');
+      } else if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        currentUser = { username: ADMIN_USERNAME };
+        saveData();
+        updateAuthUI();
+        showAuthMsg('Admin logged in!', 'text-green-400');
       } else {
         showAuthMsg('Invalid credentials');
       }
@@ -128,6 +166,7 @@
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       if (!username || !password) return showAuthMsg('Please fill both fields');
+      if (username === ADMIN_USERNAME) return showAuthMsg('Reserved username');
 
       const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
       if (users[username]) {
@@ -137,13 +176,15 @@
         localStorage.setItem('pictura_users', JSON.stringify(users));
         currentUser = { username };
         saveData();
-        showAuthMsg('Account created! You are now logged in.', 'text-green-400');
+        updateAuthUI();
+        showAuthMsg('Account created!', 'text-green-400');
       }
     };
 
     document.getElementById('logoutBtn').onclick = () => {
       currentUser = null;
       saveData();
+      updateAuthUI();
       showAuthMsg('Logged out');
     };
 
@@ -159,7 +200,7 @@
       const container = document.getElementById('gallery');
       container.innerHTML = '';
 
-      mediaItems.forEach((item, index) => {
+      mediaItems.forEach((item) => {
         const card = document.createElement('div');
         card.className = 'card rounded-xl overflow-hidden shadow-lg';
 
@@ -204,14 +245,14 @@
         });
         saveData();
         renderGallery();
-        log(`Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`);
-        e.target.value = ''; // reset input
+        log(`Uploaded: ${file.name}`);
+        e.target.value = '';
       };
       reader.readAsDataURL(file);
     };
 
     // ────────────────────────────────────────────────
-    // Voice Commands (basic example)
+    // Voice Commands
     // ────────────────────────────────────────────────
     const micBtn = document.getElementById('micBtn');
     let recognition;
@@ -248,6 +289,19 @@
     };
 
     // ────────────────────────────────────────────────
+    // Page Navigation
+    // ────────────────────────────────────────────────
+    document.getElementById('evolLink').onclick = () => {
+      document.getElementById('mainPage').style.display = 'none';
+      document.getElementById('evolutionPage').style.display = 'block';
+    };
+
+    document.getElementById('backBtn').onclick = () => {
+      document.getElementById('evolutionPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+    };
+
+    // ────────────────────────────────────────────────
     // Log helper
     // ────────────────────────────────────────────────
     function log(message) {
@@ -258,10 +312,23 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
+    // ────────────────────────────────────────────────
+    // Evolution Chamber (only for admin)
+    // ────────────────────────────────────────────────
+    function prepareEvolutionRequest() {
+      const request = document.getElementById('evolveRequest').value.trim();
+      if (!request) return log('No evolution request');
+
+      const message = `Hey Grok,\n\nEvolve PRIMORDIA + CRYSTALLIS + Pictura Nexus with this request:\n${request}\n\nPlease return the complete new index.html file (full copy-paste ready). Current version is Streamlined with Admin Evolution.`;
+      navigator.clipboard.writeText(message).then(() => {
+        document.getElementById('evolveStatus').innerHTML = '✅ Copied! Paste in chat with Grok.';
+        log('Evolution message copied');
+      }).catch(err => log('Copy error: ' + err));
+    }
+
     // Init
     loadData();
-    renderGallery();
-    log('Pictura Nexus ready • Streamlined version • Upload & voice enabled');
+    log('Pictura Nexus ready • Admin Evolution added');
   </script>
 </body>
 </html>
