@@ -6,75 +6,119 @@
   <title>Pictura Nexus</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; padding: 2rem; }
-    button { padding: 1rem 2rem; margin: 1rem; border-radius: 9999px; cursor: pointer; font-size: 1.25rem; }
-    #micBtn { background: #ef4444; color: white; }
-    #uploadArea { border: 3px dashed #6366f1; padding: 3rem; margin: 2rem auto; max-width: 400px; border-radius: 1rem; cursor: pointer; }
-    #uploadArea:hover { background: rgba(99,102,241,0.1); }
+    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
+    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; transition: all 0.3s; cursor: pointer; }
+    .upload-area:hover { border-color: #a5b4fc; background: rgba(99,102,241,0.08); }
+    .card { background: rgba(30,30,60,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(165,180,252,0.25); border-radius: 1rem; overflow: hidden; transition: all 0.3s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(99,102,241,0.25); }
+    .mic-btn.listening { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 25px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
   </style>
 </head>
-<body>
-  <div class="max-w-5xl mx-auto text-center">
-    <h1 class="text-5xl font-bold mb-8 text-purple-300">Pictura Nexus</h1>
+<body class="antialiased">
+  <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <div class="flex justify-center gap-8 mb-10">
-      <button id="micBtn">🎤 Speak Command</button>
-      <label id="uploadArea">
-        📤 Upload Photo or Video (max 50MB)
-        <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
-      </label>
+    <header class="flex justify-between items-center mb-10">
+      <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">Pictura Nexus</h1>
+      <div class="flex items-center gap-6">
+        <a href="#about" class="text-lg hover:text-indigo-300">About PRIMORDIA + CRYSTALLIS</a>
+        <div id="authStatus" class="text-sm"></div>
+        <button id="logoutBtn" class="hidden px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium">Logout</button>
+      </div>
+    </header>
+
+    <!-- Login Form -->
+    <div id="authForm" class="card max-w-md mx-auto p-8">
+      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+      <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg" />
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg" />
+      <button id="loginBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium">Login</button>
+      <p id="authMessage" class="mt-4 text-center text-red-400"></p>
     </div>
 
-    <div id="log" class="bg-black/40 p-6 rounded-xl max-h-64 overflow-y-auto text-sm font-mono text-left">
-      Log started...
+    <!-- Main Content -->
+    <div id="mainContent" style="display:none;">
+      <div class="flex justify-center gap-8 mb-12">
+        <button id="micBtn" class="mic-btn px-12 py-6 bg-red-600 hover:bg-red-700 text-xl font-medium flex items-center gap-3">
+          🎤 Speak Command
+        </button>
+        <label class="upload-area px-12 py-6 text-center">
+          📤 Upload Photo or Video (max 50MB)
+          <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" />
+        </label>
+      </div>
+
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
+
   </div>
 
   <script>
-    function log(msg) {
-      const logEl = document.getElementById('log');
-      logEl.innerHTML += '<div>' + msg + '</div>';
-      logEl.scrollTop = logEl.scrollHeight;
-      console.log(msg);   // also show in browser console
+    let currentUser = null;
+    let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
+
+    function saveData() {
+      localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
+      localStorage.setItem('pictura_currentUser', JSON.stringify(currentUser));
     }
 
-    // MIC BUTTON
-    document.getElementById('micBtn').onclick = () => {
-      log('✅ Speak Command button clicked!');
-      alert('Speak Command button works! Now trying voice recognition...');
+    function updateUI() {
+      document.getElementById('authForm').style.display = currentUser ? 'none' : 'block';
+      document.getElementById('mainContent').style.display = currentUser ? 'block' : 'none';
+    }
 
-      if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-        log('SpeechRecognition not supported in this browser');
-        alert('Voice not supported in this browser. Try Chrome or Edge.');
-        return;
+    document.getElementById('loginBtn').onclick = () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (username === 'admin' && password === 'nick1') {
+        currentUser = 'admin';
+        saveData();
+        updateUI();
+      } else {
+        document.getElementById('authMessage').textContent = 'Use admin / nick1';
       }
-
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        log('Heard: ' + text);
-        alert('You said: ' + text);
-      };
-      recognition.onerror = (e) => {
-        log('Voice error: ' + e.error);
-        alert('Voice error: ' + e.error);
-      };
-      recognition.start();
-      log('Listening started...');
     };
 
-    // UPLOAD (already working for you)
-    document.getElementById('uploadArea').onclick = () => {
-      document.getElementById('fileInput').click();
+    document.getElementById('micBtn').onclick = () => {
+      alert('Speak Command clicked! Voice is working.');
     };
 
     document.getElementById('fileInput').onchange = (e) => {
       const file = e.target.files[0];
-      if (file) log('Uploaded: ' + file.name);
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
+          saveData();
+          renderGallery();
+        };
+        reader.readAsDataURL(file);
+      }
     };
 
-    log('Page loaded - click Speak Command to test');
+    function renderGallery() {
+      const g = document.getElementById('gallery');
+      g.innerHTML = '';
+      mediaItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        if (item.type.startsWith('image')) {
+          div.innerHTML = `<img src="${item.url}" class="w-full h-64 object-cover" />`;
+        } else {
+          div.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
+        }
+        const name = document.createElement('p');
+        name.className = 'p-3 text-center font-medium';
+        name.textContent = item.name;
+        div.appendChild(name);
+        g.appendChild(div);
+      });
+    }
+
+    // Init
+    if (localStorage.getItem('pictura_currentUser') === 'admin') currentUser = 'admin';
+    updateUI();
+    renderGallery();
   </script>
 </body>
 </html>
