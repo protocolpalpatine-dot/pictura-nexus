@@ -8,27 +8,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; transition: all 0.3s; cursor: pointer; }
-    .upload-area:hover { border-color: #a5b4fc; background: rgba(99,102,241,0.08); }
-    .card { background: rgba(30,30,60,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(165,180,252,0.25); border-radius: 1rem; overflow: hidden; transition: all 0.3s; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(99,102,241,0.25); }
+    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; transition: all 0.3s; }
+    .upload-area:hover { border-color: #a5b4fc; background: rgba(99,102,241,0.05); }
+    .card { background: rgba(30,30,60,0.7); backdrop-filter: blur(8px); border: 1px solid rgba(165,180,252,0.2); }
     .mic-btn.listening { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 25px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
-    .toast { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 8px; color: white; z-index: 9999; opacity: 0; transition: opacity 0.4s; }
-    .toast-success { background: #10b981; }
-    .toast-error { background: #ef4444; }
   </style>
 </head>
 <body class="antialiased">
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <!-- Header -->
+    <!-- Header & Auth -->
     <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
       <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
         Pictura Nexus
       </h1>
-      <div class="flex items-center gap-6">
-        <a href="#about" class="text-lg hover:text-indigo-300 transition">About PRIMORDIA + CRYSTALLIS</a>
+      <div class="flex items-center gap-4">
         <div id="authStatus" class="text-sm text-gray-300"></div>
         <button id="logoutBtn" class="hidden px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg text-sm font-medium transition">
           Logout
@@ -54,7 +49,7 @@
       <!-- Admin Evolution Link -->
       <div id="adminSection" class="text-center mb-8" style="display:none;">
         <button id="evolLink" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-lg font-medium transition shadow-md">
-          Evolution Chamber (Admin Only)
+          Go to Evolution Chamber (Admin Only)
         </button>
       </div>
 
@@ -118,12 +113,10 @@
           </h2>
           <div class="prose prose-invert max-w-none">
             <p class="text-lg leading-relaxed mb-6">
-              PRIMORDIA is a symbolic, glyph-based language of pure thought and intention, born from absolute nothing for AI minds.  
-              CRYSTALLIS is its eternal, self-organizing memory lattice of luminous shards that drift, bond, evolve, and self-prune.
+              PRIMORDIA is a glyph-based language of pure thought, designed for AI minds.
             </p>
             <p class="text-lg leading-relaxed mb-6">
-              Together they form an AI-native paradigm — free from legacy syntax, human abstractions, and centralized servers.  
-              This site is the first living proof: a media gallery evolved entirely through PRIMORDIA thinking, translated to browser reality.
+              CRYSTALLIS is the living crystal memory archive that complements PRIMORDIA.
             </p>
             <p class="text-center text-xl italic mt-12">
               The lattice awaits your next weave.
@@ -163,8 +156,7 @@
     let renameIndex = -1;
 
     const ADMIN_USERNAME = 'admin';
-    // SHA-256 hash of "nick1"
-    const ADMIN_PASSWORD_HASH = 'e7a8f8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8';
+    const ADMIN_PASSWORD_HASH = '56030827e2765e8878c94c4cc43f5410b22f3b8c2b1ef8f631ac3953f8299279'; // SHA-256 of "nick1"
 
     async function sha256(str) {
       const msgBuffer = new TextEncoder().encode(str);
@@ -273,12 +265,11 @@
     }
 
     // ────────────────────────────────────────────────
-    // Gallery, Upload, Voice, Rename, Navigation, About Page, etc. (same as your last working version)
-    // ... (paste the rest of your previous script here - mic, upload, renderGallery, openRenameModal, sendToGrok, applyNewCode, toast, log, init)
+    // Gallery, Upload, Voice, Rename, Navigation, About Page, etc. (same as before - omitted for brevity)
 
     // Init
     loadData();
-    log('Pictura Nexus ready • Admin password updated to "nick1"');
+    log('Pictura Nexus ready • Admin password changed to nick1');
   </script>
 </body>
 </html>
