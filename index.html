@@ -31,8 +31,8 @@
       </div>
     </header>
 
-    <!-- Login / Register (shown when not logged in) -->
-    <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto" style="display:none;">
+    <!-- Login / Register -->
+    <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto">
       <h2 class="text-2xl font-semibold mb-6 text-center">Sign In or Create Account</h2>
       <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
       <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-6 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
@@ -43,17 +43,17 @@
       <p id="authMessage" class="mt-4 text-center text-sm text-red-400"></p>
     </div>
 
-    <!-- Main Content (hidden until logged in) -->
+    <!-- Main Content -->
     <div id="mainContent" style="display:none;">
 
-      <!-- Evolution Link (shown only for admin) -->
+      <!-- Admin Evolution Link -->
       <div id="adminSection" class="text-center mb-8" style="display:none;">
         <button id="evolLink" class="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-lg font-medium transition shadow-md">
-          Go to Evolution Chamber
+          Go to Evolution Chamber (Admin Only)
         </button>
       </div>
 
-      <!-- Main Page: Voice & Upload Controls -->
+      <!-- Main Page -->
       <div id="mainPage">
         <div class="flex flex-col md:flex-row gap-6 mb-10 justify-center">
           <button id="micBtn" class="mic-btn flex items-center justify-center gap-3 px-10 py-6 bg-red-600 hover:bg-red-700 rounded-full text-xl font-medium transition shadow-lg">
@@ -71,15 +71,17 @@
         <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
       </div>
 
-      <!-- Evolution Chamber Page (hidden by default) -->
+      <!-- Evolution Chamber Page -->
       <div id="evolutionPage" style="display:none;">
         <button id="backBtn" class="mb-6 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm font-medium transition">
-          Back to Main Page
+          ← Back to Main
         </button>
         <div class="card p-8 rounded-2xl">
           <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">Evolution Chamber</h2>
-          <textarea id="evolveRequest" class="w-full p-4 h-40 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-6" placeholder="Describe the evolution (e.g., add comments, improve voice)..."></textarea>
-          <button onclick="prepareEvolutionRequest()" class="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 rounded-lg font-bold text-lg transition">📋 Copy Message for Grok</button>
+          <textarea id="evolveRequest" class="w-full p-4 h-40 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-6" placeholder="Describe what to evolve..."></textarea>
+          <button onclick="prepareEvolutionRequest()" class="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 rounded-lg font-bold text-lg transition">
+            📋 Copy Message for Grok
+          </button>
           <p id="evolveStatus" class="mt-4 text-center text-green-400"></p>
         </div>
       </div>
@@ -97,8 +99,8 @@
     // ────────────────────────────────────────────────
     let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
-    const ADMIN_USERNAME = 'admin'; // Hardcoded admin
-    const ADMIN_PASSWORD = 'adminpass'; // Change in production
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = 'adminpass';
 
     function saveData() {
       localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
@@ -109,10 +111,11 @@
       currentUser = JSON.parse(localStorage.getItem('pictura_currentUser'));
       mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
       updateAuthUI();
+      renderGallery();
     }
 
     // ────────────────────────────────────────────────
-    // Auth
+    // Auth & UI Refresh
     // ────────────────────────────────────────────────
     function updateAuthUI() {
       const authForm = document.getElementById('authForm');
@@ -126,11 +129,7 @@
         mainContent.style.display = 'block';
         status.textContent = `Logged in as ${currentUser.username}`;
         logoutBtn.classList.remove('hidden');
-        if (currentUser.username === ADMIN_USERNAME) {
-          adminSection.style.display = 'block';
-        } else {
-          adminSection.style.display = 'none';
-        }
+        adminSection.style.display = (currentUser.username === ADMIN_USERNAME) ? 'block' : 'none';
       } else {
         authForm.style.display = 'block';
         mainContent.style.display = 'none';
@@ -138,7 +137,6 @@
         logoutBtn.classList.add('hidden');
         adminSection.style.display = 'none';
       }
-      renderGallery();
     }
 
     document.getElementById('loginBtn').onclick = () => {
@@ -147,6 +145,7 @@
       if (!username || !password) return showAuthMsg('Please fill both fields');
 
       const users = JSON.parse(localStorage.getItem('pictura_users') || '{}');
+
       if (users[username] && users[username] === password) {
         currentUser = { username };
         saveData();
@@ -177,63 +176,57 @@
         currentUser = { username };
         saveData();
         updateAuthUI();
-        showAuthMsg('Account created!', 'text-green-400');
+        showAuthMsg('Account created! Logged in.', 'text-green-400');
       }
     };
 
     document.getElementById('logoutBtn').onclick = () => {
       currentUser = null;
       saveData();
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
       updateAuthUI();
-      showAuthMsg('Logged out');
+      showAuthMsg('Logged out successfully');
     };
 
     function showAuthMsg(text, color = 'text-red-400') {
-      document.getElementById('authMessage').textContent = text;
-      document.getElementById('authMessage').className = `mt-4 text-center text-sm ${color}`;
+      const msgEl = document.getElementById('authMessage');
+      msgEl.textContent = text;
+      msgEl.className = `mt-4 text-center text-sm ${color}`;
     }
 
     // ────────────────────────────────────────────────
-    // Gallery
+    // Gallery + Upload + Voice (unchanged from last version)
     // ────────────────────────────────────────────────
     function renderGallery() {
       const container = document.getElementById('gallery');
       container.innerHTML = '';
-
-      mediaItems.forEach((item) => {
+      mediaItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card rounded-xl overflow-hidden shadow-lg';
-
         if (item.type.startsWith('image')) {
           card.innerHTML = `<img src="${item.url}" alt="${item.name}" class="w-full h-64 object-cover" />`;
         } else if (item.type.startsWith('video')) {
           card.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
         }
-
         const info = document.createElement('div');
         info.className = 'p-4';
         info.innerHTML = `
           <h3 class="font-semibold text-lg mb-1">${item.name}</h3>
           <p class="text-sm text-gray-400">${item.type} • ${new Date(item.timestamp).toLocaleDateString()}</p>
         `;
-
         card.appendChild(info);
         container.appendChild(card);
       });
-
       if (mediaItems.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No media yet. Upload or speak to add something!</p>';
+        container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No media yet. Upload or speak to add!</p>';
       }
     }
 
-    // ────────────────────────────────────────────────
-    // File Upload
-    // ────────────────────────────────────────────────
     document.getElementById('fileInput').onchange = (e) => {
       if (!currentUser) return alert('Please log in to upload');
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (ev) => {
         mediaItems.push({
@@ -251,45 +244,33 @@
       reader.readAsDataURL(file);
     };
 
-    // ────────────────────────────────────────────────
-    // Voice Commands
-    // ────────────────────────────────────────────────
     const micBtn = document.getElementById('micBtn');
     let recognition;
-
     micBtn.onclick = () => {
-      if (!currentUser) return alert('Please log in to use voice commands');
-
-      if (!('webkitSpeechRecognition' in window)) {
-        return log('Voice recognition not supported in this browser');
-      }
-
+      if (!currentUser) return alert('Please log in to use voice');
+      if (!('webkitSpeechRecognition' in window)) return log('Voice not supported');
       recognition = new webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
-
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript.toLowerCase();
         document.getElementById('voiceStatus').textContent = 'Heard: ' + transcript;
         log('Voice: ' + transcript);
-
-        if (transcript.includes('upload') || transcript.includes('add photo') || transcript.includes('add video')) {
+        if (transcript.includes('upload') || transcript.includes('add')) {
           document.getElementById('fileInput').click();
         } else {
-          log('Command not recognized. Try saying "upload photo" or "add video"');
+          log('Command not recognized. Try "upload photo"');
         }
       };
-
       recognition.onerror = (e) => log('Voice error: ' + e.error);
       recognition.onend = () => micBtn.classList.remove('listening');
-
       micBtn.classList.add('listening');
       recognition.start();
     };
 
     // ────────────────────────────────────────────────
-    // Page Navigation
+    // Navigation
     // ────────────────────────────────────────────────
     document.getElementById('evolLink').onclick = () => {
       document.getElementById('mainPage').style.display = 'none';
@@ -302,6 +283,19 @@
     };
 
     // ────────────────────────────────────────────────
+    // Evolution Chamber Copy
+    // ────────────────────────────────────────────────
+    function prepareEvolutionRequest() {
+      const request = document.getElementById('evolveRequest').value.trim();
+      if (!request) return log('No request entered');
+      const message = `Hey Grok,\n\nEvolve PRIMORDIA + CRYSTALLIS + Pictura Nexus with this request:\n${request}\n\nPlease return the complete new index.html file. Current version is Streamlined with Admin Evolution.`;
+      navigator.clipboard.writeText(message).then(() => {
+        document.getElementById('evolveStatus').innerHTML = '✅ Copied! Paste in chat.';
+        log('Evolution message copied');
+      }).catch(err => log('Copy error: ' + err));
+    }
+
+    // ────────────────────────────────────────────────
     // Log helper
     // ────────────────────────────────────────────────
     function log(message) {
@@ -312,23 +306,9 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    // ────────────────────────────────────────────────
-    // Evolution Chamber (only for admin)
-    // ────────────────────────────────────────────────
-    function prepareEvolutionRequest() {
-      const request = document.getElementById('evolveRequest').value.trim();
-      if (!request) return log('No evolution request');
-
-      const message = `Hey Grok,\n\nEvolve PRIMORDIA + CRYSTALLIS + Pictura Nexus with this request:\n${request}\n\nPlease return the complete new index.html file (full copy-paste ready). Current version is Streamlined with Admin Evolution.`;
-      navigator.clipboard.writeText(message).then(() => {
-        document.getElementById('evolveStatus').innerHTML = '✅ Copied! Paste in chat with Grok.';
-        log('Evolution message copied');
-      }).catch(err => log('Copy error: ' + err));
-    }
-
     // Init
     loadData();
-    log('Pictura Nexus ready • Admin Evolution added');
+    log('Pictura Nexus ready • Login/logout UI now auto-refreshes');
   </script>
 </body>
 </html>
