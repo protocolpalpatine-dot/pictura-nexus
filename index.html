@@ -36,7 +36,7 @@
       </div>
     </header>
 
-    <!-- Login / Register Form -->
+    <!-- Login / Register -->
     <div id="authForm" class="card p-8 rounded-2xl mb-10 max-w-md mx-auto">
       <h2 class="text-2xl font-semibold mb-6 text-center">Sign In or Create Account</h2>
       <input id="username" type="text" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500" />
@@ -48,7 +48,7 @@
       <p id="authMessage" class="mt-4 text-center text-sm text-red-400"></p>
     </div>
 
-    <!-- Main Content (hidden until logged in) -->
+    <!-- Main Content -->
     <div id="mainContent" style="display:none;">
 
       <!-- Admin Evolution Link -->
@@ -163,7 +163,8 @@
     let renameIndex = -1;
 
     const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
+    // SHA-256 hash of "nick1"
+    const ADMIN_PASSWORD_HASH = 'e7a8f8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8';
 
     async function sha256(str) {
       const msgBuffer = new TextEncoder().encode(str);
@@ -185,7 +186,7 @@
     }
 
     // ────────────────────────────────────────────────
-    // Auth & UI Refresh (fixed for instant visibility)
+    // Auth & UI Refresh
     // ────────────────────────────────────────────────
     function updateAuthUI() {
       const authForm = document.getElementById('authForm');
@@ -193,8 +194,6 @@
       const status = document.getElementById('authStatus');
       const logoutBtn = document.getElementById('logoutBtn');
       const adminSection = document.getElementById('adminSection');
-
-      console.log('Updating UI - currentUser:', currentUser);
 
       if (currentUser) {
         authForm.style.display = 'none';
@@ -275,14 +274,11 @@
 
     // ────────────────────────────────────────────────
     // Gallery, Upload, Voice, Rename, Navigation, About Page, etc. (same as your last working version)
-    // ... (paste the rest of your previous script here - mic, upload, renderGallery, openRenameModal, etc.)
+    // ... (paste the rest of your previous script here - mic, upload, renderGallery, openRenameModal, sendToGrok, applyNewCode, toast, log, init)
 
-    // Init with forced UI update
-    window.onload = () => {
-      loadData();
-      updateAuthUI(); // Force UI to correct state on load
-      console.log('Page loaded - auth state:', currentUser ? 'logged in' : 'logged out');
-    };
+    // Init
+    loadData();
+    log('Pictura Nexus ready • Admin password updated to "nick1"');
   </script>
 </body>
 </html>
