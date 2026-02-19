@@ -83,6 +83,13 @@
             📋 Copy Message for Grok
           </button>
           <p id="evolveStatus" class="mt-4 text-center text-green-400"></p>
+          <div class="mt-8">
+            <h3 class="text-xl font-semibold mb-4">Paste New Code from Grok Here</h3>
+            <textarea id="newCodePaste" class="w-full p-4 h-64 bg-gray-800 border border-violet-600 rounded-lg focus:outline-none focus:border-violet-500 mb-4" placeholder="Paste the full new index.html code here..."></textarea>
+            <button onclick="applyNewCode()" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg font-bold text-lg transition">
+              Apply & Download New Code
+            </button>
+          </div>
         </div>
       </div>
 
@@ -196,7 +203,7 @@
     }
 
     // ────────────────────────────────────────────────
-    // Gallery + Upload + Voice (unchanged from last version)
+    // Gallery + Upload + Voice (unchanged)
     // ────────────────────────────────────────────────
     function renderGallery() {
       const container = document.getElementById('gallery');
@@ -296,6 +303,21 @@
     }
 
     // ────────────────────────────────────────────────
+    // Apply New Code (downloads as file for user to upload to GitHub)
+    // ────────────────────────────────────────────────
+    function applyNewCode() {
+      const newCode = document.getElementById('newCodePaste').value.trim();
+      if (!newCode) return log('No code pasted');
+      log('New code applied - downloading updated index.html');
+      const blob = new Blob([newCode], {type: 'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      a.click();
+      document.getElementById('evolveStatus').innerHTML = '✅ Code downloaded. Upload to GitHub to apply live!';
+    }
+
+    // ────────────────────────────────────────────────
     // Log helper
     // ────────────────────────────────────────────────
     function log(message) {
@@ -308,7 +330,7 @@
 
     // Init
     loadData();
-    log('Pictura Nexus ready • Login/logout UI now auto-refreshes');
+    log('Pictura Nexus ready • Self-update via code paste added');
   </script>
 </body>
 </html>
