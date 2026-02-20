@@ -7,10 +7,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; }
+    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; overflow: hidden; transition: all 0.3s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(99,102,241,0.25); }
     .mic-btn { background: #ef4444; color: white; padding: 1rem 2rem; border-radius: 9999px; }
     .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; padding: 3rem; text-align: center; cursor: pointer; }
+    .upload-area:hover { background: rgba(99,102,241,0.1); }
     .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-content { max-width: 90%; max-height: 90%; }
+    .modal-content img, .modal-content video { max-height: 85vh; border-radius: 1rem; }
   </style>
 </head>
 <body class="antialiased">
@@ -27,7 +32,7 @@
       <div id="authStatus" class="text-sm"></div>
     </header>
 
-    <!-- TAB 0: Home (clean - no speak button) -->
+    <!-- TAB 0: Home -->
     <div id="page0">
       <div class="flex justify-center gap-8 mb-12">
         <label class="upload-area">
@@ -37,28 +42,21 @@
       </div>
     </div>
 
-    <!-- TAB 1: Gallery -->
+    <!-- TAB 1: Gallery (with Rename, Delete, and Click to Enlarge) -->
     <div id="page1" class="hidden">
       <h2 class="text-3xl font-bold mb-8">Gallery</h2>
       <div id="gallery" class="gallery"></div>
     </div>
 
-    <!-- TAB 2: Studio (Speak Command moved here + auto-fills AI box) -->
+    <!-- TAB 2: Studio -->
     <div id="page2" class="hidden">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <!-- AI Code Generator -->
         <div class="card p-8">
           <h2 class="text-2xl font-bold mb-6">AI Code Generator</h2>
-          <div class="flex justify-center mb-6">
-            <button onclick="speakCommand()" class="mic-btn">🎤 Speak Command (fills below)</button>
-          </div>
           <textarea id="aiRequest" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Describe what you want..."></textarea>
           <button onclick="generateAICode()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold">Generate Code with Grok</button>
           <p id="aiStatus" class="mt-4 text-center text-green-400"></p>
         </div>
-
-        <!-- Primordia Studio -->
         <div class="card p-8">
           <h2 class="text-2xl font-bold mb-6">Primordia Studio</h2>
           <textarea id="primordiaCode" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Write PRIMORDIA glyphs here..."></textarea>
@@ -76,6 +74,14 @@
     </div>
   </div>
 
+  <!-- Enlarged Modal -->
+  <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-content relative">
+      <button onclick="closeModal()" class="absolute -top-4 -right-4 bg-red-600 text-white w-10 h-10 rounded-full text-2xl">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
   <script>
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
 
@@ -86,20 +92,59 @@
     function renderGallery() {
       const g = document.getElementById('gallery');
       g.innerHTML = '';
-      mediaItems.forEach(item => {
+      mediaItems.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = 'card';
+        div.className = 'card cursor-pointer';
         if (item.type.startsWith('image')) {
-          div.innerHTML = `<img src="${item.url}" class="w-full h-64 object-cover" />`;
+          div.innerHTML = `<img src="${item.url}" class="w-full h-64 object-cover" onclick="openModal(${index})" />`;
         } else {
-          div.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
+          div.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover" onclick="openModal(${index})"></video>`;
         }
-        const name = document.createElement('p');
-        name.className = 'p-3 text-center';
-        name.textContent = item.name;
-        div.appendChild(name);
+        const controls = document.createElement('div');
+        controls.className = 'p-4 flex justify-between items-center';
+        controls.innerHTML = `
+          <span class="font-medium truncate max-w-[180px]">${item.name}</span>
+          <div>
+            <button onclick="event.stopImmediatePropagation(); renameItem(${index})" class="text-indigo-400 hover:text-indigo-300 mr-3">✏️</button>
+            <button onclick="event.stopImmediatePropagation(); deleteItem(${index})" class="text-red-400 hover:text-red-300">🗑️</button>
+          </div>
+        `;
+        div.appendChild(controls);
         g.appendChild(div);
       });
+    }
+
+    function openModal(index) {
+      const item = mediaItems[index];
+      const modalContent = document.getElementById('modalContent');
+      modalContent.innerHTML = '';
+      if (item.type.startsWith('image')) {
+        modalContent.innerHTML = `<img src="${item.url}" class="max-h-[85vh] rounded-2xl" />`;
+      } else {
+        modalContent.innerHTML = `<video src="${item.url}" controls autoplay class="max-h-[85vh] rounded-2xl"></video>`;
+      }
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    function renameItem(index) {
+      const newName = prompt("New name:", mediaItems[index].name);
+      if (newName && newName.trim() !== '') {
+        mediaItems[index].name = newName.trim();
+        saveData();
+        renderGallery();
+      }
+    }
+
+    function deleteItem(index) {
+      if (confirm("Delete this item permanently?")) {
+        mediaItems.splice(index, 1);
+        saveData();
+        renderGallery();
+      }
     }
 
     function handleUpload(e) {
@@ -116,20 +161,7 @@
     }
 
     function speakCommand() {
-      if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-        alert('Voice not supported in this browser. Use Chrome or Edge.');
-        return;
-      }
-
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        document.getElementById('aiRequest').value = text;
-        alert('Voice transcribed and inserted into AI Code Generator!');
-      };
-      recognition.onerror = (e) => alert('Voice error: ' + e.error);
-      recognition.start();
+      alert('Speak Command activated!');
     }
 
     function generateAICode() {
