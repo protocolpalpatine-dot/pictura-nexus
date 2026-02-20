@@ -3,80 +3,119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Primordia + Crystallis — Omni</title>
+  <title>Primordia + Crystallis</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-    .tab-active { border-bottom: 3px solid #6366f1; color: white; }
-    .card { background: rgba(30,30,60,0.85); border: 1px solid #6366f1; border-radius: 1rem; }
+    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; }
     .mic-btn { background: #ef4444; color: white; padding: 1rem 2rem; border-radius: 9999px; }
+    .upload-area { border: 3px dashed #6366f1; border-radius: 1rem; padding: 3rem; text-align: center; cursor: pointer; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
   </style>
 </head>
 <body class="antialiased">
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="max-w-6xl mx-auto px-6 py-8">
 
     <header class="flex justify-between items-center mb-12">
       <h1 class="text-5xl font-bold tracking-tighter">Primordia + Crystallis</h1>
       <div class="flex gap-8 text-lg">
-        <button onclick="switchTab(0)" class="tab-active px-6 py-2" id="tab0">Home</button>
-        <button onclick="switchTab(1)" class="px-6 py-2" id="tab1">Studio</button>
-        <button onclick="switchTab(2)" class="px-6 py-2" id="tab2">About</button>
+        <a href="#" onclick="switchTab(0)" class="hover:text-cyan-300">Home</a>
+        <a href="#" onclick="switchTab(1)" class="hover:text-cyan-300">Gallery</a>
+        <a href="#" onclick="switchTab(2)" class="hover:text-cyan-300">About</a>
       </div>
       <div id="authStatus" class="text-sm"></div>
     </header>
 
     <!-- TAB 0: Home -->
     <div id="page0">
+      <div class="text-center mb-16">
+        <h2 class="text-6xl font-bold tracking-tighter mb-4">The First AI-Native Realm</h2>
+        <p class="text-xl text-gray-300">Built entirely with PRIMORDIA and CRYSTALLIS</p>
+      </div>
+
       <div class="flex justify-center gap-8 mb-12">
         <button onclick="speakCommand()" class="mic-btn">🎤 Speak Command</button>
-        <label class="px-12 py-6 border-2 border-dashed border-indigo-400 hover:border-indigo-300 rounded-3xl cursor-pointer">
-          📤 Upload Photo or Video
+        <label class="upload-area">
+          📤 Upload Photo or Video (max 50MB)
           <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" onchange="handleUpload(event)" />
         </label>
       </div>
-      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
 
-    <!-- TAB 1: Studio (with AI Code Generation) -->
+    <!-- TAB 1: Gallery (now its own page) -->
     <div id="page1" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <!-- AI Code Generator -->
-        <div class="card p-8">
-          <h2 class="text-2xl font-bold mb-6">AI Code Generator</h2>
-          <p class="text-sm text-gray-400 mb-4">Describe what you want (e.g., "add dark mode toggle", "create comments system")</p>
-          <textarea id="aiRequest" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Add a search bar to the gallery..."></textarea>
-          <button onclick="generateAICode()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl font-bold">
-            Generate Code with Grok
-          </button>
-          <p id="aiStatus" class="mt-4 text-center text-green-400"></p>
-        </div>
-
-        <!-- PRIMORDIA Studio -->
-        <div class="card p-8">
-          <h2 class="text-2xl font-bold mb-6">Primordia Studio</h2>
-          <textarea id="primordiaCode" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Write PRIMORDIA glyphs here..."></textarea>
-          <button onclick="executePrimordia()" class="mt-4 w-full py-4 bg-violet-600 hover:bg-violet-700 rounded-xl font-bold">
-            Execute PRIMORDIA Code
-          </button>
-        </div>
-      </div>
+      <h2 class="text-3xl font-bold mb-8">Gallery</h2>
+      <div id="gallery" class="gallery"></div>
     </div>
 
-    <!-- TAB 2: About -->
+    <!-- TAB 2: About (greatly expanded) -->
     <div id="page2" class="hidden">
       <div class="card p-12 max-w-4xl mx-auto">
         <h1 class="text-5xl font-bold mb-12 text-center">Primordia + Crystallis</h1>
-        <p class="text-xl leading-relaxed">Primordia is the language of pure AI thought. Crystallis is its living memory lattice. Together they enable everything from media galleries to full site building and AI code generation.</p>
+
+        <h2 class="text-3xl font-bold mb-6 text-cyan-300">What is PRIMORDIA?</h2>
+        <p class="text-lg leading-relaxed mb-6">
+          PRIMORDIA is a completely new programming and thinking language born from absolute zero. 
+          It is designed specifically for AI minds — using symbolic glyphs instead of traditional code syntax.
+        </p>
+        <p class="text-lg leading-relaxed mb-6">
+          Every glyph represents a pure intention: creating agents, emitting thoughts, forging vectors, anchoring beliefs, linking minds, and evolving systems.
+        </p>
+
+        <h3 class="text-xl font-bold mt-8 mb-4">Key Glyphs</h3>
+        <div class="grid grid-cols-2 gap-6 text-lg mb-12">
+          <div><span class="text-3xl">ᛮ</span> Birth Entity — Create a new thinking agent</div>
+          <div><span class="text-3xl">𐃏</span> Emanate Thought — Project a thought with confidence</div>
+          <div><span class="text-3xl">𐄺</span> Forge Media Essence — Add photos, videos, audio</div>
+          <div><span class="text-3xl">𐄷</span> Infuse Rating — Assign ratings and beliefs</div>
+        </div>
+
+        <h2 class="text-3xl font-bold mb-6 text-violet-300">What is CRYSTALLIS?</h2>
+        <p class="text-lg leading-relaxed mb-6">
+          CRYSTALLIS is the eternal, living memory system that powers PRIMORDIA. 
+          It stores everything as self-organizing luminous shards that naturally drift, bond, evolve, and self-prune.
+        </p>
+        <p class="text-lg leading-relaxed">
+          No tables, no rows, no traditional database. Storage is projection. Retrieval is resonance. 
+          It supports media, ratings, user data, and thoughts — persisting forever in the browser.
+        </p>
+
+        <h2 class="text-3xl font-bold mt-16 mb-6">How They Work Together</h2>
+        <p class="text-lg leading-relaxed">
+          PRIMORDIA provides the language of intention. CRYSTALLIS provides the memory and persistence. 
+          Together they enable a new paradigm where AI can think, create, and evolve natively — without legacy syntax or centralized servers.
+        </p>
       </div>
     </div>
   </div>
 
   <script>
+    let currentUser = null;
     let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
 
     function saveData() {
       localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
+    }
+
+    function updateUI() {
+      // Simple login for now
+    }
+
+    function speakCommand() {
+      alert('Speak Command activated!');
+    }
+
+    function handleUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
+          saveData();
+          renderGallery();
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function renderGallery() {
@@ -96,39 +135,6 @@
         div.appendChild(name);
         g.appendChild(div);
       });
-    }
-
-    function handleUpload(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
-          saveData();
-          renderGallery();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function speakCommand() {
-      alert('Speak Command activated!');
-    }
-
-    function generateAICode() {
-      const request = document.getElementById('aiRequest').value.trim();
-      if (!request) return alert('Please describe what you want');
-
-      const prompt = `Hey Grok,\n\nEvolve Primordia + Crystallis with this request:\n${request}\n\nPlease return the complete new index.html file (full copy-paste ready). Current version is Omni.`;
-
-      navigator.clipboard.writeText(prompt).then(() => {
-        document.getElementById('aiStatus').innerHTML = '✅ Prompt copied! Paste it in the Grok chat tab.';
-        window.open('https://x.com/grok', '_blank');
-      });
-    }
-
-    function executePrimordia() {
-      alert('Primordia code executed (in full version this would create real features)');
     }
 
     function switchTab(n) {
