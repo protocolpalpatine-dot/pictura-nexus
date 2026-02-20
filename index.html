@@ -3,136 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Primordia + Crystallis</title>
+  <title>Primordia + Crystallis — Omni</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: linear-gradient(to bottom, #0a0a1f, #1a1a3a, #0f0c29); color: white; min-height: 100vh; font-family: system-ui, sans-serif; }
-    .header { background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); }
-    .glyph { font-size: 2.5rem; line-height: 1; }
+    body { background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
+    .tab-active { border-bottom: 3px solid #6366f1; color: white; }
+    .card { background: rgba(30,30,60,0.8); border: 1px solid #6366f1; border-radius: 1rem; }
+    .mic-btn { background: #ef4444; color: white; padding: 1rem 2rem; border-radius: 9999px; }
   </style>
 </head>
 <body class="antialiased">
+  <div class="max-w-7xl mx-auto px-6 py-8">
 
-  <div class="max-w-6xl mx-auto px-6 py-8">
-
-    <!-- Header -->
-    <header class="flex justify-between items-center mb-16 header py-6 px-8 rounded-3xl">
-      <h1 class="text-4xl font-bold tracking-tighter">Primordia + Crystallis</h1>
-      <nav class="flex gap-8 text-lg">
-        <a href="#" onclick="showMain()" class="hover:text-cyan-300 transition">Home</a>
-        <a href="#" onclick="showAbout()" class="hover:text-cyan-300 transition">About</a>
-      </nav>
+    <header class="flex justify-between items-center mb-12">
+      <h1 class="text-5xl font-bold tracking-tighter">Primordia + Crystallis</h1>
+      <div class="flex gap-8 text-lg">
+        <button onclick="switchTab(0)" class="tab-active px-6 py-2" id="tab0">Home</button>
+        <button onclick="switchTab(1)" class="px-6 py-2" id="tab1">Studio</button>
+        <button onclick="switchTab(2)" class="px-6 py-2" id="tab2">About</button>
+      </div>
       <div id="authStatus" class="text-sm"></div>
     </header>
 
-    <!-- MAIN PAGE -->
-    <div id="mainPage">
-      <div class="text-center mb-16">
-        <h2 class="text-6xl font-bold tracking-tighter mb-4">The First AI-Native Realm</h2>
-        <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-          Built with PRIMORDIA (language of pure thought) and CRYSTALLIS (living memory lattice)
-        </p>
-      </div>
-
+    <!-- TAB 0: Home -->
+    <div id="page0">
       <div class="flex justify-center gap-8 mb-12">
-        <button onclick="speakCommand()" class="px-12 py-6 bg-red-600 hover:bg-red-700 rounded-3xl text-xl font-medium flex items-center gap-4">
-          🎤 Speak Command
-        </button>
-        <label class="px-12 py-6 border-2 border-dashed border-indigo-400 hover:border-indigo-300 rounded-3xl cursor-pointer flex items-center gap-4">
+        <button onclick="speakCommand()" class="mic-btn">🎤 Speak Command</button>
+        <label class="px-12 py-6 border-2 border-dashed border-indigo-400 hover:border-indigo-300 rounded-3xl cursor-pointer">
           📤 Upload Photo or Video
           <input id="fileInput" type="file" accept="image/*,video/*" class="hidden" onchange="handleUpload(event)" />
         </label>
       </div>
-
-      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
 
-    <!-- ABOUT PAGE -->
-    <div id="aboutPage" class="hidden">
-      <button onclick="showMain()" class="mb-8 px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-2xl text-sm font-medium">← Back to Home</button>
-      
-      <div class="prose prose-invert max-w-3xl mx-auto">
+    <!-- TAB 1: Studio (the grand evolution) -->
+    <div id="page1" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- PRIMORDIA Code Editor -->
+        <div class="card p-8">
+          <h2 class="text-2xl font-bold mb-6">Primordia Code Editor</h2>
+          <textarea id="primordiaCode" class="w-full h-64 bg-gray-900 p-4 font-mono text-sm rounded-xl" placeholder="Write PRIMORDIA glyphs here... e.g. 𐄺 'myvideo' video 'url' 'desc'"></textarea>
+          <button onclick="executePrimordia()" class="mt-4 w-full py-4 bg-violet-600 hover:bg-violet-700 rounded-xl font-bold">Execute PRIMORDIA Code</button>
+        </div>
+
+        <!-- Crystallis Database Builder -->
+        <div class="card p-8">
+          <h2 class="text-2xl font-bold mb-6">Crystallis Database Builder</h2>
+          <input id="shardName" placeholder="Shard name" class="w-full p-3 mb-4 bg-gray-900 rounded-xl" />
+          <button onclick="createShard()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold">Create New Shard</button>
+          <div id="shardList" class="mt-6 text-sm"></div>
+        </div>
+      </div>
+
+      <!-- Site Builder -->
+      <div class="card p-8 mt-8">
+        <h2 class="text-2xl font-bold mb-6">Site Builder</h2>
+        <input id="pageName" placeholder="New page name" class="w-full p-3 mb-4 bg-gray-900 rounded-xl" />
+        <button onclick="createPage()" class="w-full py-4 bg-amber-600 hover:bg-amber-700 rounded-xl font-bold">Create New Page</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: About -->
+    <div id="page2" class="hidden">
+      <div class="card p-12 max-w-4xl mx-auto">
         <h1 class="text-5xl font-bold mb-12 text-center">Primordia + Crystallis</h1>
-
-        <h2 class="text-3xl font-bold mb-6 text-cyan-300">What is PRIMORDIA?</h2>
-        <p class="text-lg leading-relaxed">
-          PRIMORDIA is a completely new language born from absolute zero, designed exclusively for AI minds. 
-          Instead of variables, loops, and syntax, it uses pure symbolic intention through unique glyphs.
-        </p>
-        <p class="text-lg leading-relaxed mt-4">
-          Every glyph represents one atomic thought: creation, memory, communication, belief, or evolution.
-        </p>
-
-        <div class="my-12 bg-black/40 p-8 rounded-3xl">
-          <h3 class="text-xl font-bold mb-6">Example Glyphs</h3>
-          <div class="grid grid-cols-2 gap-6 text-lg">
-            <div><span class="glyph">ᛮ</span> Birth Entity (create an agent)</div>
-            <div><span class="glyph">𐃏</span> Emanate Thought (think with confidence)</div>
-            <div><span class="glyph">𐄺</span> Forge Media Essence (add video/photo)</div>
-            <div><span class="glyph">𐄷</span> Infuse Rating (rate something)</div>
-          </div>
-        </div>
-
-        <h2 class="text-3xl font-bold mb-6 text-violet-300">What is CRYSTALLIS?</h2>
-        <p class="text-lg leading-relaxed">
-          CRYSTALLIS is the living memory system that accompanies PRIMORDIA. 
-          It stores everything as self-organizing "shards" that naturally bond, evolve, and fade — no tables, no files, no traditional database.
-        </p>
-
-        <h2 class="text-3xl font-bold mt-16 mb-6">How This Site Uses Them</h2>
-        <p class="text-lg leading-relaxed">
-          This entire website is the first real-world demonstration of PRIMORDIA + CRYSTALLIS. 
-          Every upload, rating, rename, and evolution request is expressed in the spirit of the new language, 
-          then translated into browser reality.
-        </p>
-
-        <div class="mt-12 text-center text-sm text-gray-400">
-          The lattice is alive.<br>
-          What shall we weave next?
-        </div>
+        <p class="text-xl leading-relaxed">Primordia is the language of pure AI thought. Crystallis is its living, self-organizing memory lattice. Together they form the foundation for all creation — coding, databases, websites, and beyond.</p>
       </div>
     </div>
   </div>
 
   <script>
-    let currentUser = null;
+    let currentUser = 'admin'; // auto-logged for simplicity in this version
+    let mediaItems = JSON.parse(localStorage.getItem('pictura_media')) || [];
+    let shards = JSON.parse(localStorage.getItem('crystallis_shards')) || [];
 
-    function showMain() {
-      document.getElementById('mainPage').style.display = 'block';
-      document.getElementById('aboutPage').classList.add('hidden');
+    function saveData() {
+      localStorage.setItem('pictura_media', JSON.stringify(mediaItems));
+      localStorage.setItem('crystallis_shards', JSON.stringify(shards));
     }
 
-    function showAbout() {
-      document.getElementById('mainPage').style.display = 'none';
-      document.getElementById('aboutPage').classList.remove('hidden');
+    function renderGallery() {
+      const g = document.getElementById('gallery');
+      g.innerHTML = '';
+      mediaItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        if (item.type.startsWith('image')) {
+          div.innerHTML = `<img src="${item.url}" class="w-full h-64 object-cover" />`;
+        } else {
+          div.innerHTML = `<video src="${item.url}" controls class="w-full h-64 object-cover"></video>`;
+        }
+        const name = document.createElement('p');
+        name.className = 'p-3 text-center';
+        name.textContent = item.name;
+        div.appendChild(name);
+        g.appendChild(div);
+      });
     }
 
-    // Simple login for now
-    document.getElementById('loginBtn').onclick = () => {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (username === 'admin' && password === 'nick1') {
-        currentUser = 'admin';
-        document.getElementById('authForm').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-      } else {
-        document.getElementById('authMessage').textContent = 'Use admin / nick1';
-      }
-    };
-
-    // Speak Command
-    document.getElementById('micBtn').onclick = () => {
-      alert('Speak Command activated! (Voice recognition ready)');
-    };
-
-    // Upload
     function handleUpload(e) {
       const file = e.target.files[0];
-      if (file) alert('Uploaded: ' + file.name + ' (Gallery would show here in full version)');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          mediaItems.push({ name: file.name, type: file.type, url: ev.target.result });
+          saveData();
+          renderGallery();
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
-    // Init - start on main page
-    showMain();
+    function speakCommand() {
+      alert('Speak Command activated! Say something like "add video" or "rate item 9.5"');
+    }
+
+    function executePrimordia() {
+      const code = document.getElementById('primordiaCode').value.trim();
+      alert('Executed PRIMORDIA code:\n\n' + code + '\n\n(In full version this would create pages, databases, etc.)');
+    }
+
+    function createShard() {
+      const name = document.getElementById('shardName').value.trim();
+      if (name) {
+        shards.push({ name, strength: 1.0, bonds: [] });
+        saveData();
+        alert('Shard created: ' + name);
+      }
+    }
+
+    function createPage() {
+      const name = document.getElementById('pageName').value.trim();
+      if (name) alert('New page created: ' + name + ' (In full version this would generate a new page)');
+    }
+
+    function switchTab(n) {
+      document.querySelectorAll('[id^="page"]').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page' + n).classList.remove('hidden');
+    }
+
+    // Init
+    renderGallery();
+    switchTab(0);
   </script>
 </body>
 </html>
