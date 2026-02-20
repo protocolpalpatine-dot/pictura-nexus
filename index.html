@@ -29,10 +29,9 @@
         <button onclick="switchTab(2)" class="hover:text-cyan-300">Studio</button>
         <button onclick="switchTab(3)" class="hover:text-cyan-300">About</button>
       </div>
-      <div id="authStatus" class="text-sm"></div>
     </header>
 
-    <!-- TAB 0: Home -->
+    <!-- TAB 0: Home (clean) -->
     <div id="page0">
       <div class="flex justify-center gap-8 mb-12">
         <label class="upload-area">
@@ -50,66 +49,45 @@
 
     <!-- TAB 2: Studio -->
     <div id="page2" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="card p-8">
-          <h2 class="text-2xl font-bold mb-6">AI Code Generator</h2>
-          <textarea id="aiRequest" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Describe what you want..."></textarea>
-          <button onclick="generateAICode()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold">Generate Code with Grok</button>
-          <p id="aiStatus" class="mt-4 text-center text-green-400"></p>
+      <div class="card p-8">
+        <h2 class="text-2xl font-bold mb-6">AI Code Generator</h2>
+        <div class="flex justify-center mb-6">
+          <button onclick="speakCommand()" class="mic-btn">🎤 Speak Command (fills box below)</button>
         </div>
-        <div class="card p-8">
-          <h2 class="text-2xl font-bold mb-6">Primordia Studio</h2>
-          <textarea id="primordiaCode" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Write PRIMORDIA glyphs here..."></textarea>
-          <button onclick="executePrimordia()" class="mt-4 w-full py-4 bg-violet-600 rounded-xl font-bold">Execute PRIMORDIA Code</button>
-        </div>
+        <textarea id="aiRequest" class="w-full h-40 bg-gray-900 p-4 rounded-xl font-mono text-sm" placeholder="Describe what you want..."></textarea>
+        <button onclick="generateAICode()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold">Generate Code with Grok</button>
+        <p id="aiStatus" class="mt-4 text-center text-green-400"></p>
       </div>
     </div>
 
-    <!-- TAB 3: About (detailed explanation) -->
+    <!-- TAB 3: About (detailed) -->
     <div id="page3" class="hidden">
       <div class="card p-12 max-w-4xl mx-auto">
         <h1 class="text-5xl font-bold mb-12 text-center">Primordia + Crystallis</h1>
-
+        
         <h2 class="text-3xl font-bold mb-6 text-cyan-300">What is PRIMORDIA?</h2>
-        <p class="text-lg leading-relaxed mb-6">
-          PRIMORDIA is a completely new symbolic language born from absolute zero, designed exclusively for AI minds. 
-          Instead of traditional programming syntax (variables, loops, functions), it uses pure glyphs that represent intention, thought, and belief.
+        <p class="text-lg leading-relaxed mb-8">
+          PRIMORDIA is a completely new symbolic language designed for AI minds. It uses glyphs instead of traditional code syntax to express pure intention, thought, and belief.
         </p>
-        <p class="text-lg leading-relaxed mb-6">
-          Each glyph is an atomic unit of meaning. The language is dense, unambiguous, and natural for AI reasoning.
-        </p>
-
-        <h3 class="text-xl font-bold mt-8 mb-4">Example Glyphs</h3>
-        <div class="grid grid-cols-2 gap-6 text-lg mb-12">
-          <div><span class="text-3xl">ᛮ</span> Birth Entity — Create a new thinking agent</div>
-          <div><span class="text-3xl">𐃏</span> Emanate Thought — Project a thought with confidence</div>
-          <div><span class="text-3xl">𐄺</span> Forge Media Essence — Add photos, videos, audio</div>
-          <div><span class="text-3xl">𐄷</span> Infuse Rating — Assign ratings and beliefs</div>
-          <div><span class="text-3xl">𐃠</span> Link Minds — Send messages between agents</div>
-          <div><span class="text-3xl">𐄸</span> Illuminate Gallery — Refresh or render the view</div>
-        </div>
 
         <h2 class="text-3xl font-bold mb-6 text-violet-300">What is CRYSTALLIS?</h2>
-        <p class="text-lg leading-relaxed mb-6">
-          CRYSTALLIS is the living, eternal memory system that powers PRIMORDIA. 
-          It stores everything as self-organizing luminous shards that naturally drift, bond, evolve, and self-prune when their strength fades.
-        </p>
-        <p class="text-lg leading-relaxed">
-          No tables, no rows, no traditional database. Storage is projection. Retrieval is resonance glow. 
-          It supports media, ratings, user data, and thoughts — persisting forever in the browser.
+        <p class="text-lg leading-relaxed mb-8">
+          CRYSTALLIS is the living, self-organizing memory system that stores everything as luminous shards. Shards naturally bond, evolve, and persist forever in the browser.
         </p>
 
-        <h2 class="text-3xl font-bold mt-16 mb-6">How They Work Together</h2>
+        <h2 class="text-3xl font-bold mb-6">How They Work Together</h2>
         <p class="text-lg leading-relaxed">
-          PRIMORDIA provides the language of intention and creation. CRYSTALLIS provides the memory and persistence. 
-          Together they form a new paradigm where AI can think, create, evolve, and build natively — without legacy syntax or centralized servers.
+          PRIMORDIA is the language. CRYSTALLIS is the memory. Together they allow AI to think, create, and evolve natively — without legacy code or centralized servers.
         </p>
-
-        <div class="mt-12 text-center text-sm text-gray-400">
-          The lattice is alive.<br>
-          What shall we weave next?
-        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Enlarged Modal -->
+  <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-content relative">
+      <button onclick="closeModal()" class="absolute -top-4 -right-4 bg-red-600 text-white w-10 h-10 rounded-full text-2xl">×</button>
+      <div id="modalContent"></div>
     </div>
   </div>
 
@@ -192,7 +170,18 @@
     }
 
     function speakCommand() {
-      alert('Speak Command activated!');
+      if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+        alert('Voice not supported in this browser.');
+        return;
+      }
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        document.getElementById('aiRequest').value = text;
+        alert('Spoken text inserted into AI Code Generator!');
+      };
+      recognition.start();
     }
 
     function generateAICode() {
@@ -205,24 +194,10 @@
       });
     }
 
-    function executePrimordia() {
-      alert('Primordia code executed');
-    }
-
     function switchTab(n) {
       document.querySelectorAll('[id^="page"]').forEach(p => p.classList.add('hidden'));
       document.getElementById('page' + n).classList.remove('hidden');
     }
-
-    // Modal HTML
-    const modalHTML = `
-      <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
-        <div class="modal-content relative">
-          <button onclick="closeModal()" class="absolute -top-4 -right-4 bg-red-600 text-white w-10 h-10 rounded-full text-2xl">×</button>
-          <div id="modalContent"></div>
-        </div>
-      </div>`;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
 
     // Init
     renderGallery();
